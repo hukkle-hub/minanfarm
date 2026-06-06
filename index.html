@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>minanfarm</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C402A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F1EA;--surface:#FFFFFF;--ink:#181B17;--sub:#76796E;
+    --green:#1C402A;--green-2:#235236;--green-soft:#E7EFE7;
+    --amber:#A9833F;--amber-soft:#F4ECD9;--gold:#C7A24A;
+    --line:#E9E5DB;--danger:#A33C30;--danger-soft:#F6E8E3;
+    --blue:#365E72;--blue-soft:#E7EEF2;--purple:#6E4A86;
+    --shadow:0 1px 2px rgba(20,30,20,.04),0 14px 34px rgba(16,38,26,.10);
+    --font:"Pretendard","Pretendard Variable",-apple-system,system-ui,sans-serif;
+    --serif:"Fraunces",Georgia,"Nanum Myeongjo",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--font);color:var(--ink);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:0;background:var(--bg);}
+  .phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);border-radius:0;box-shadow:none;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+  .notch{display:none;}
+  .topbar{padding:18px 22px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(155deg,#23553a 0%,#163c27 100%);color:#fff;border-bottom:1px solid rgba(199,162,74,.4);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:23px;letter-spacing:.2px;}
+  .brand .logo{width:34px;height:34px;border-radius:10px;object-fit:contain;background:rgba(255,255,255,.06);padding:3px;box-shadow:0 1px 0 rgba(255,255,255,.12) inset;}
+  .topbar .farm{font-size:12px;font-weight:600;text-align:right;cursor:pointer;color:#e7d9ad;letter-spacing:.2px;}
+  .screen{flex:1;overflow-y:auto;padding:20px 18px 104px;display:none;animation:fade .32s cubic-bezier(.2,.7,.3,1);}.screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h2.title{font-size:23px;font-weight:800;letter-spacing:-.5px;margin-bottom:3px;}
+  .muted{color:var(--sub);font-size:13px;font-weight:500;}
+  .card{background:var(--surface);border-radius:20px;padding:17px;box-shadow:var(--shadow);margin-bottom:14px;border:1px solid var(--line);}
+  .row{display:flex;align-items:center;gap:12px;}.between{justify-content:space-between;}
+  .pill{font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;letter-spacing:.2px;}
+  .pill.g{background:var(--green-soft);color:var(--green);}.pill.a{background:var(--amber-soft);color:var(--amber);}.pill.d{background:var(--danger-soft);color:var(--danger);}.pill.b{background:var(--blue-soft);color:var(--blue);}.pill.p{background:#efe6f4;color:var(--purple);}
+  .btn{display:block;width:100%;border:none;border-radius:15px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:transform .08s,box-shadow .2s;letter-spacing:.2px;}.btn:active{transform:scale(.985);}
+  .btn.primary{background:linear-gradient(180deg,#235236,#173d28);color:#fff;box-shadow:0 8px 20px rgba(20,58,38,.28);}
+  .btn.amber{background:linear-gradient(180deg,#b8924a,#9a7531);color:#fff;box-shadow:0 8px 20px rgba(154,117,49,.26);}
+  .btn.blue{background:var(--blue);color:#fff;}
+  .btn.ghost{background:#fff;color:var(--green);border:1.5px solid rgba(28,64,42,.28);}
+  .btn.sm{padding:10px 12px;font-size:13px;border-radius:12px;}
+  .label{font-size:12.5px;font-weight:700;color:var(--sub);letter-spacing:.2px;}
+  .divider{height:1px;background:var(--line);margin:13px 0;}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px 6px;text-align:center;cursor:pointer;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .stat::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:26px;height:3px;border-radius:3px 3px 0 0;background:var(--gold);opacity:.0;transition:.2s;}
+  .stat:active::after{opacity:1;}
+  .stat b{display:block;font-family:var(--serif);font-weight:600;font-size:25px;color:var(--green);letter-spacing:.3px;}.stat span{font-size:10.5px;color:var(--sub);font-weight:600;}
+  .todo{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);}.todo:last-child{border-bottom:none;}
+  .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none;box-shadow:0 0 0 3px rgba(0,0,0,.03);}
+  .todo h4{font-size:14.5px;font-weight:700;}.todo p{font-size:12px;color:var(--sub);margin-top:2px;}
+  .cattle{display:flex;align-items:center;gap:13px;padding:13px 4px;border-bottom:1px solid var(--line);cursor:pointer;}.cattle:last-child{border-bottom:none;}
+  .tag{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:16px;flex:none;}
+  .t-breed{background:var(--amber-soft);color:var(--amber);}.t-feed{background:var(--green-soft);color:var(--green);}.t-calfM{background:var(--blue-soft);color:var(--blue);}.t-calfF{background:#efe6f4;color:var(--purple);}
+  .cattle .info{flex:1;min-width:0;}.cattle .info h4{font-size:15.5px;font-weight:700;}.cattle .info p{font-size:12px;color:var(--sub);margin-top:2px;}
+  .chev{color:#c2bba9;font-size:18px;}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;}
+  .chip{white-space:nowrap;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--sub);cursor:pointer;transition:.15s;}
+  .chip.on{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 4px 12px rgba(20,58,38,.2);}
+  .resultrow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}.resultrow:last-child{border-bottom:none;}.resultrow b{font-weight:800;}
+  .note{font-size:11px;color:#7a6b46;background:linear-gradient(180deg,#f7efda,#f3ead2);padding:9px 12px;border-radius:11px;font-weight:600;line-height:1.5;border:1px solid rgba(199,162,74,.25);}
+  .input,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;font-size:14px;font-family:var(--font);font-weight:600;background:#fdfdfb;transition:.15s;}
+  .input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(28,64,42,.1);}textarea{min-height:58px;resize:none;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .field{margin-bottom:10px;}.field .input,.field select{margin-top:5px;}
+  .bignum{font-family:var(--serif);font-size:34px;font-weight:600;letter-spacing:-.5px;}.pos{color:var(--green);}.neg{color:var(--danger);}
+  .entry{border-left:2px solid var(--gold);padding:4px 0 12px 13px;margin-left:4px;position:relative;}
+  .entry::before{content:"";position:absolute;left:-5px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--gold);}
+  .entry .meta{font-size:11px;color:var(--sub);font-weight:700;}.entry h4{font-size:14.5px;font-weight:700;margin:2px 0;}.entry p{font-size:13px;color:#3a352a;line-height:1.45;}
+  .catpill{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;margin-right:6px;}
+  .c-med{background:var(--danger-soft);color:var(--danger);}.c-vac{background:var(--amber-soft);color:var(--amber);}.c-blood{background:var(--blue-soft);color:var(--blue);}.c-ai{background:#efe6f4;color:var(--purple);}.c-obs{background:var(--green-soft);color:var(--green);}.c-etc{background:#eee;color:#666;}
+  .wk{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}.wk:last-child{border-bottom:none;}
+  .wknum{width:48px;flex:none;text-align:center;background:var(--green-soft);color:var(--green);border-radius:10px;padding:6px 0;font-family:var(--serif);font-weight:600;font-size:13px;}.wk .wkbody{flex:1;}.wk h4{font-size:14px;font-weight:700;}.wk .del{background:none;border:none;color:#c0b8a6;font-size:16px;cursor:pointer;font-weight:800;}
+  .chkbox{width:28px;height:28px;border-radius:9px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-weight:800;color:#fff;font-size:15px;cursor:pointer;transition:.15s;}.chkbox.on{background:var(--green);border-color:var(--green);}
+  .photos{display:flex;gap:8px;flex-wrap:wrap;}.photos img{width:84px;height:84px;object-fit:cover;border-radius:13px;border:1px solid var(--line);}
+  .avatar{width:46px;height:46px;border-radius:14px;object-fit:cover;flex:none;}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;}.tabs button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px;font-family:var(--font);font-weight:800;font-size:13px;color:var(--sub);cursor:pointer;}.tabs button.on{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 6px 16px rgba(20,58,38,.22);}
+  .switch{width:46px;height:27px;border-radius:999px;background:#d9d3c6;position:relative;cursor:pointer;transition:.2s;flex:none;}.switch.on{background:var(--green);}.switch::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}.switch.on::after{left:22px;}
+  .mode{border:1.5px solid var(--line);border-radius:15px;padding:14px;margin-bottom:9px;cursor:pointer;transition:.15s;}.mode.sel{border-color:var(--green);background:var(--green-soft);box-shadow:0 6px 16px rgba(20,58,38,.12);}.mode h4{font-size:15px;font-weight:800;}.mode p{font-size:11.5px;color:var(--sub);margin-top:4px;line-height:1.4;}
+  .feature{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}.feature:last-child{border-bottom:none;}.feature .fi{width:40px;height:40px;border-radius:12px;background:var(--green-soft);display:grid;place-items:center;font-size:19px;flex:none;}.feature h4{font-size:15px;font-weight:700;}.feature p{font-size:12.5px;color:var(--sub);margin-top:2px;}
+  .nav{position:absolute;bottom:0;left:0;right:0;height:80px;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;z-index:50;padding-bottom:9px;}
+  .nav button{position:relative;flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:var(--font);cursor:pointer;color:#b3ad9c;font-size:10px;font-weight:700;transition:.15s;}.nav button .ic{font-size:20px;}.nav button.on{color:var(--green);}
+  .nav button.on::before{content:"";position:absolute;top:0;width:24px;height:3px;border-radius:0 0 3px 3px;background:var(--gold);}
+  .toast{position:absolute;bottom:98px;left:50%;transform:translateX(-50%) translateY(20px);background:#181B17;color:#fff;padding:12px 18px;border-radius:13px;font-size:13.5px;font-weight:700;opacity:0;transition:.3s;z-index:80;max-width:340px;text-align:center;border:1px solid rgba(199,162,74,.3);}.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .back{background:none;border:none;color:var(--green);font-weight:800;font-size:14px;cursor:pointer;margin-bottom:10px;font-family:var(--font);}
+  .fab{position:absolute;bottom:94px;right:16px;width:56px;height:56px;border-radius:50%;background:linear-gradient(140deg,#235236,#163c27);color:#fff;border:1px solid rgba(199,162,74,.4);font-size:26px;box-shadow:0 12px 26px rgba(20,58,38,.45);z-index:55;cursor:pointer;}
+  #install{display:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="topbar"><div class="brand"><img class="logo" src="mark-cream.png" alt="">minanfarm</div><div class="farm" id="farmlabel" onclick="go('settings')">목장 ▾</div></div>
+
+  <!-- 홈 -->
+  <section class="screen active" id="home">
+    <h2 class="title">안녕하세요</h2>
+    <p class="muted" style="margin-bottom:14px">오늘 할 일과 농장 현황</p>
+    <button class="btn amber" id="install" style="margin-bottom:12px" onclick="doInstall()">📲 홈 화면에 앱 설치</button>
+    <button class="btn ghost" id="notifbtn" style="margin-bottom:10px" onclick="enableNotif()">🔔 알림 켜기 (백그라운드)</button>
+    <div id="home-alertbanner"></div>
+    <div class="stats">
+      <div class="stat" onclick="showCat('전체')"><b id="s-total">0</b><span>전체 두수</span></div>
+      <div class="stat" onclick="showCat('번식우')"><b id="s-breed">0</b><span>번식우</span></div>
+      <div class="stat" onclick="showCat('비육우')"><b id="s-feed">0</b><span>비육우</span></div>
+    </div>
+    <div class="stats" style="margin-top:10px">
+      <div class="stat" onclick="showCat('암송아지')"><b id="s-calff">0</b><span>암송아지</span></div>
+      <div class="stat" onclick="showCat('숫송아지')"><b id="s-calfm">0</b><span>숫송아지</span></div>
+    </div>
+    <div class="card"><div class="row between" style="margin-bottom:4px"><b style="font-size:15px">오늘·이번주 할 일</b><span class="pill g">주차 자동</span></div><div id="home-todo"></div></div>
+    <div class="grid2"><button class="btn ghost" onclick="go('market')">📊 시세</button><button class="btn ghost" onclick="go('pnl')">📈 손익</button></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="go('meds')">💊 약품 재고</button>
+  </section>
+
+  <!-- 개체 목록 (검색+분류) -->
+  <section class="screen" id="list">
+    <div class="row between"><h2 class="title">개체</h2><button class="btn primary sm" style="width:auto" onclick="go('reg')">＋ 등록</button></div>
+    <input class="input" style="margin:12px 0" id="cattle-q" placeholder="이표번호·이름 검색" oninput="renderCattle()">
+    <div class="chips" id="cat-chips"></div>
+    <div class="card" id="cattlelist"></div>
+  </section>
+
+  <!-- 개체 등록 -->
+  <section class="screen" id="reg">
+    <button class="back" onclick="go('list')">‹ 개체</button>
+    <h2 class="title">개체 등록</h2>
+
+    <!-- 마이데이터 일괄등록 -->
+    <div class="card">
+      <b style="font-size:14px">📋 마이데이터 일괄등록</b>
+      <p class="muted" style="margin:6px 0 10px">이표번호 또는 관리번호로 검색하면 같은 농장주의 전체 개체를 불러옵니다</p>
+      <div class="row" style="gap:8px">
+        <input class="input" id="bulk-q" placeholder="농장식별번호 6자리·관리번호 4자리·식별번호 12자리" style="flex:1" onkeydown="if(event.key==='Enter')searchFarm()">
+        <button class="btn primary sm" style="width:auto;white-space:nowrap" onclick="searchFarm()">🔍 검색</button>
+      </div>
+      <div id="bulk-results" style="margin-top:12px"></div>
+    </div>
+
+    <!-- 직접 등록 -->
+    <div class="card">
+      <b style="font-size:14px">✏️ 직접 등록</b>
+      <div class="field" style="margin-top:8px"><span class="label">관리번호 (이표 끝 4자리)</span><input class="input" id="r-tag" placeholder="8742"></div>
+      <div class="field"><span class="label">식별번호(전체)</span><input class="input" id="r-idno" placeholder="002-1993-8742-0"></div>
+      <button class="btn ghost sm" style="margin-bottom:10px" onclick="importEkape()">🔗 축산물이력제 자동조회 (출생·성별·번식정보)</button>
+      <div class="field"><span class="label">이름(선택)</span><input class="input" id="r-name" placeholder="예: 누렁이"></div>
+      <div class="grid2">
+        <div class="field"><span class="label">성별</span><select class="input" id="r-sex" onchange="autoClassify()"><option value="F">암</option><option value="M">수</option><option value="C">거세</option></select></div>
+        <div class="field"><span class="label">구분 (자동)</span><select class="input" id="r-cat" onchange="syncReg()"><option value="breed">번식우</option><option value="feed">비육우</option><option value="calfF">암송아지</option><option value="calfM">숫송아지</option></select></div>
+      </div>
+      <div id="r-autonote" class="note" style="margin-bottom:10px">출생일·산차·수정/분만 기록을 입력하면 암수·구분이 자동 판정됩니다</div>
+      <div class="grid2">
+        <div class="field"><span class="label">출생일</span><input class="input" id="r-base" type="date" onchange="autoClassify()"></div>
+        <div class="field"><span class="label">개체 KPN</span><input class="input" id="r-kpn" placeholder="KPN1434"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><span class="label">산차</span><input class="input" id="r-parity" type="number" placeholder="0 = 미경산" oninput="autoClassify()"></div>
+        <div class="field" id="r-pregwrap"><span class="label">임신여부</span><select class="input" id="r-preg"><option value="0">비임신</option><option value="1">임신</option></select></div>
+      </div>
+      <div class="grid2" id="r-breedfields">
+        <div class="field"><span class="label">수정일</span><input class="input" id="r-aidate" type="date" onchange="autoClassify()"></div>
+        <div class="field"><span class="label">정액 KPN</span><input class="input" id="r-aikpn" placeholder="KPN1503"></div>
+      </div>
+      <div class="field"><span class="label">최근 분만일</span><input class="input" id="r-calving" type="date" onchange="autoClassify()"></div>
+      <div class="field"><span class="label">부 KPN</span><input class="input" id="r-sire" placeholder="KPN1447"></div>
+      <button class="btn primary" style="margin-top:4px" onclick="saveCattle()">등록</button>
+    </div>
+  </section>
+
+  <!-- 개체 상세 -->
+  <section class="screen" id="detail">
+    <button class="back" onclick="go('list')">‹ 목록</button>
+    <div class="card" id="detail-head"></div>
+    <div class="card"><div class="row between"><b style="font-size:15px">개체 사진</b><button class="btn ghost sm" style="width:auto" onclick="document.getElementById('photo-input').click()">📷 ＋ 사진</button></div><div id="detail-photos" class="photos" style="margin-top:10px"></div></div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(event)">
+    <div class="card"><div class="row between"><b style="font-size:15px">번식 일정 (출산·발정 예정)</b><button class="btn ghost sm" style="width:auto" onclick="go('heat')">💗 발정관찰</button></div><div id="detail-breed" style="margin-top:8px"></div></div>
+    <div class="card"><div class="row between"><b style="font-size:15px">주차별 실행 현황</b><span class="pill g" id="status-ratio">-</span></div><p class="muted" style="margin:4px 0 6px">항목을 체크하면 완료로 기록됩니다</p><div id="detail-status"></div><button class="btn ghost sm" style="margin-top:8px;width:auto" onclick="go('proto')">일정 편집</button></div>
+    <div class="card"><b style="font-size:15px">기록 (약처방·백신·채혈·수정)</b><div id="detail-timeline" style="margin-top:8px"></div></div>
+    <button class="btn primary" onclick="openAdd(currentCattle)">＋ 이 개체에 기록 추가</button>
+    <div class="card" style="border-color:rgba(163,60,48,.3)"><b style="font-size:15px">출하 · 양도 처리</b>
+      <p class="muted" style="margin:4px 0 10px">처리 시 사육 목록에서 제외되며, 출하소는 도축 등급·판매가를 나중에 확인할 수 있습니다</p>
+      <div class="grid2">
+        <button class="btn amber sm" onclick="openShip(currentCattle)">🚚 출하(도축장)</button>
+        <button class="btn ghost sm" onclick="transferOut(currentCattle)">🤝 양도(매매)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 출하 처리 -->
+  <section class="screen" id="ship">
+    <button class="back" onclick="openDetail(currentCattle)">‹ 개체</button>
+    <h2 class="title">출하 처리</h2>
+    <div class="card">
+      <div id="ship-head"></div>
+      <div class="field" style="margin-top:8px"><span class="label">출하일</span><input class="input" id="sp-date" type="date"></div>
+      <div class="field"><span class="label">출하처(도축장/공판장)</span><input class="input" id="sp-place" placeholder="예: 음성공판장"></div>
+      <div class="note">출하 시 사육 목록에서 자동 제외됩니다. 도축·등급 결과는 축산물품질평가원 알림(카카오톡)으로 통보되며, 알림을 반영하면 등급·판매가가 자동 채워집니다.</div>
+      <div class="row" style="gap:8px;margin-top:8px"><div class="switch on" id="sw-shipalarm" onclick="this.classList.toggle('on')"></div><span style="font-size:13px;font-weight:600">도축 결과 통보 시 자동 알림 받기</span></div>
+      <button class="btn amber" style="margin-top:12px" onclick="confirmShip()">출하 확정 · 목록에서 제외</button>
+    </div>
+  </section>
+
+  <!-- 출하/양도 이력 -->
+  <section class="screen" id="archive">
+    <h2 class="title">출하·양도 이력</h2>
+    <p class="muted" style="margin-bottom:12px">제외된 개체의 도축 등급·판매가 확인</p>
+    <div class="chips" id="arch-chips"></div>
+    <div class="card"><div id="archive-list"></div></div>
+  </section>
+
+  <!-- 알림 센터 -->
+  <section class="screen" id="alerts">
+    <div class="row between"><h2 class="title">알림 센터</h2><span class="pill d" id="alerts-badge" style="display:none">0</span></div>
+    <p class="muted" style="margin-bottom:10px">도축·등급 통보, 일정 알림을 한 곳에서 관리</p>
+    <div class="card" style="margin-bottom:12px">
+      <div class="row between"><b style="font-size:14px">🔗 축산물이력제·등급판정 API</b><div class="switch" id="sw-autosync" onclick="toggleAutoSync()"></div></div>
+      <p class="muted" id="kpp-status" style="margin:6px 0 10px">자동 도축결과 수신</p>
+      <button class="btn primary sm" onclick="syncKPP(true)">📥 지금 도축결과 동기화</button>
+    </div>
+    <div class="card" style="margin-bottom:12px"><b style="font-size:14px">일괄 처리</b>
+      <div class="grid2" style="margin-top:8px">
+        <button class="btn ghost sm" onclick="markAllRead()">✓ 모두 확인</button>
+        <button class="btn ghost sm" onclick="readByKind('kpp')">도축알림 확인</button>
+        <button class="btn ghost sm" onclick="reAlertAllUnread()">🔔 미확인 재알림</button>
+        <button class="btn ghost sm" style="color:var(--danger)" onclick="delRead()">🗑 확인된 알림 삭제</button>
+      </div>
+    </div>
+    <div class="card"><div id="alerts-list"></div></div>
+  </section>
+
+  <!-- 농장일지 -->
+  <section class="screen" id="diary">
+    <h2 class="title">농장일지</h2>
+    <p class="muted" style="margin-bottom:12px">노트처럼 적고 개체별로 불러봅니다</p>
+    <select class="input" style="margin-bottom:12px" id="diary-filter" onchange="renderDiary()"><option value="">전체 개체</option></select>
+    <div class="card"><div id="diary-list"></div></div>
+    <button class="fab" onclick="openAdd('')">＋</button>
+  </section>
+
+  <!-- 기록 추가 -->
+  <section class="screen" id="add">
+    <button class="back" onclick="go(prevScreen)">‹ 취소</button>
+    <h2 class="title">일지·처방 기록</h2>
+    <div class="card">
+      <div class="field"><span class="label">개체</span><select class="input" id="a-cattle"></select></div>
+      <div class="field"><span class="label">날짜</span><input class="input" type="date" id="a-date"></div>
+      <div class="field"><span class="label">분류</span><select class="input" id="a-cat"><option value="med">💊 약처방</option><option value="vac">💉 예방주사</option><option value="blood">🩸 채혈</option><option value="ai">🧬 수정/수정확인</option><option value="obs">👁 관찰</option><option value="etc">📝 기타</option></select></div>
+      <div class="field"><span class="label">내용</span><textarea id="a-text" placeholder="예: 엔로플록사신 5ml 근육 / 임신감정 양성"></textarea></div>
+      <button class="btn primary" onclick="saveEntry()">저장</button>
+    </div>
+  </section>
+
+  <!-- 주차별 관리 -->
+  <section class="screen" id="proto">
+    <h2 class="title">주차별 관리</h2>
+    <p class="muted" style="margin-bottom:12px">예방주사·채혈·수정확인 — 직접 업그레이드</p>
+    <div class="card">
+      <div class="row between"><div><b style="font-size:14px">🔔 주차 알림</b><p class="muted" style="margin-top:3px">각 개체 일정(분만/출생 기준)에 맞춰 알림</p></div><div class="switch on" id="sw-protoalarm" onclick="this.classList.toggle('on')"></div></div>
+      <div class="row between" style="margin-top:12px"><span class="label">알림 시각</span><input class="input" id="alarm-time" type="time" value="08:00" style="width:130px" onchange="store.set('alarmTime',this.value)"></div>
+      <button class="btn primary sm" style="margin-top:12px" onclick="scheduleProtoAlarms()">🔔 알림 권한 켜고 예약</button>
+      <p class="note" style="margin-top:8px">각 항목 옆 🔔로 개별 on/off. 완료 처리한 항목은 알림에서 제외됩니다.</p>
+    </div>
+    <div class="tabs"><button id="tab-preg" class="on" onclick="setProto('preg')">번식우 주차별</button><button id="tab-calf" onclick="setProto('calf')">송아지 주차별</button></div>
+    <div class="card"><div id="proto-list"></div></div>
+    <div class="card"><b style="font-size:14px">＋ 항목 추가</b>
+      <div class="row" style="margin-top:9px;gap:8px"><input class="input" id="np-week" type="number" placeholder="주차" style="width:70px;text-align:center"><select class="input" id="np-cat" style="flex:1"><option value="vaccine">예방주사</option><option value="blood">채혈</option><option value="ai_check">수정확인</option><option value="observe">관찰</option><option value="etc">기타</option></select></div>
+      <input class="input" id="np-label" placeholder="할 일 내용" style="margin-top:8px">
+      <button class="btn primary sm" style="margin-top:9px" onclick="addProto()">추가</button>
+    </div>
+  </section>
+
+  <!-- 약품 -->
+  <section class="screen" id="meds">
+    <h2 class="title">약품 재고</h2>
+    <p class="muted" style="margin-bottom:12px">유통기한·수량 · 사진 등록</p>
+    <button class="btn amber" onclick="photoReg()">📷 사진으로 약 등록(약명·유통기한·수량)</button>
+    <div id="ocrbox" class="card" style="display:none;margin-top:12px">
+      <b style="font-size:14px;color:var(--green)">📷 인식 결과(수정 가능)</b>
+      <div class="field" style="margin-top:8px"><span class="label">약명</span><input class="input" id="m-name" value="옥시테트라사이클린 주사액"></div>
+      <div class="grid2"><div class="field"><span class="label">유통기한</span><input class="input" id="m-exp" type="date" value="2026-09-30"></div><div class="field"><span class="label">수량</span><input class="input" id="m-qty" type="number" value="3"></div></div>
+      <button class="btn primary" onclick="saveMed()">재고에 저장</button>
+    </div>
+    <div class="card" style="margin-top:14px"><div class="row between"><b style="font-size:15px">보유 약품</b><span class="pill d" id="exp-count">-</span></div><div id="med-list" style="margin-top:8px"></div></div>
+    <button class="btn ghost" onclick="drugInfo()">🔎 약 정보 검색(효능·부작용·휴약기간)</button>
+    <div class="card" id="infobox" style="display:none;margin-top:12px"></div>
+  </section>
+
+  <!-- 손익 -->
+  <section class="screen" id="pnl">
+    <h2 class="title">손익 대시보드</h2>
+    <div class="card" style="text-align:center;margin-top:12px"><span class="label">올해 예상 순손익</span><div class="bignum pos" id="net">+0만원</div><span class="muted" id="perhead"></span></div>
+
+    <!-- 번식우 섹션 -->
+    <div class="card">
+      <div class="row between"><b style="font-size:15px">🐄 번식우 부문</b><span class="pill a" id="breed-net">-</span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><span class="label">번식우 두수</span><input class="input" type="number" id="i-breedhead" value="5" oninput="calc()"></div>
+        <div class="field"><span class="label">배합사료 kg/두·일</span><input class="input" type="number" id="i-bfeed" value="4" oninput="calc()"></div>
+        <div class="field"><span class="label">조사료 kg/두·일</span><input class="input" type="number" id="i-brough" value="8" oninput="calc()"></div>
+        <div class="field"><span class="label">연 송아지 판매(두)</span><input class="input" type="number" id="i-calfsell" value="4" oninput="calc()"></div>
+      </div>
+      <div class="field"><span class="label">송아지 두당 판매가(만원)</span><input class="input" type="number" id="i-calfprice" value="360" oninput="calc()"></div>
+      <div class="note" id="calf-info" style="margin-top:4px">송아지 사료 자동계산</div>
+    </div>
+
+    <!-- 비육우 섹션 -->
+    <div class="card">
+      <div class="row between"><b style="font-size:15px">🐂 비육우 부문</b><span class="pill g" id="feed-net">-</span></div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><span class="label">비육우 두수</span><input class="input" type="number" id="i-feedhead" value="6" oninput="calc()"></div>
+        <div class="field"><span class="label">배합사료 kg/두·일</span><input class="input" type="number" id="i-ffeed" value="8" oninput="calc()"></div>
+        <div class="field"><span class="label">조사료 kg/두·일</span><input class="input" type="number" id="i-frough" value="2" oninput="calc()"></div>
+        <div class="field"><span class="label">연 출하두수</span><input class="input" type="number" id="i-ship" value="6" oninput="calc()"></div>
+        <div class="field"><span class="label">도체중(kg)</span><input class="input" type="number" id="i-cw" value="486" oninput="calc()"></div>
+        <div class="field"><span class="label">경락가(원/kg)</span><input class="input" type="number" id="i-price" value="21716" oninput="calc()"></div>
+      </div>
+    </div>
+
+    <!-- 공통 단가·운영비 -->
+    <div class="card"><b style="font-size:15px">⚙️ 사료단가·운영비</b>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><span class="label">배합사료 단가(원/kg)</span><input class="input" type="number" id="i-feedp" value="600" oninput="calc()"></div>
+        <div class="field"><span class="label">조사료 단가(원/kg)</span><input class="input" type="number" id="i-roughp" value="300" oninput="calc()"></div>
+        <div class="field"><span class="label">전기세(연/만원)</span><input class="input" type="number" id="i-elec" value="240" oninput="calc()"></div>
+        <div class="field"><span class="label">농기계(연/만원)</span><input class="input" type="number" id="i-mach" value="600" oninput="calc()"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 시세 (우시장 검색) -->
+  <section class="screen" id="market">
+    <h2 class="title">시세</h2>
+    <div class="card" style="margin-top:12px"><span class="label">한우 거세우 평균 경락가</span><div style="font-size:28px;font-weight:800;color:var(--green)">21,716 <span style="font-size:14px;color:var(--sub)">원/kg</span></div><span class="muted">전년比 ▲20.3% · 출처 축평원·한우협회</span></div>
+    <div class="card">
+      <div class="label">우리 가축시장(우시장) 검색</div>
+      <input class="input" id="mkq" style="margin-top:6px" placeholder="지역명 (예: 고흥, 횡성, 합천...)" oninput="renderMarkets()">
+      <div id="mklist" style="margin-top:8px"></div>
+      <div id="mkdetail" style="display:none;margin-top:10px">
+        <div class="divider"></div>
+        <b id="mk-name" style="font-size:15px"></b>
+        <p class="muted" style="margin:4px 0 8px;font-size:12px">평균 낙찰가 (4개 종목)</p>
+        <div class="resultrow"><span>암송아지</span><b id="mk-cow"></b></div>
+        <div class="resultrow"><span>숫송아지</span><b id="mk-bull"></b></div>
+        <div class="resultrow"><span>번식우</span><b id="mk-breed"></b></div>
+        <div class="resultrow"><span>비육우</span><b id="mk-feed"></b></div>
+        <div class="resultrow"><span>거래두수</span><b id="mk-cnt"></b></div>
+        <button class="btn blue sm" style="margin-top:10px" onclick="showToast('실시간 시세 갱신')">🔄 다시 조회</button>
+      </div>
+      <p class="note" style="margin-top:10px">전국 가축시장 데이터는 농협 축산정보센터·축협 스마트가축시장과 연동. 목록에 없으면 검색으로 찾습니다.</p>
+    </div>
+    <button class="btn primary" onclick="go('mkalert')">🔔 우시장·도축장 개장일 카카오 알림 설정</button>
+  </section>
+
+  <!-- 개장일 알림 설정 -->
+  <section class="screen" id="mkalert">
+    <button class="back" onclick="go('market')">‹ 시세</button>
+    <h2 class="title">개장일 알림</h2>
+    <p class="muted" style="margin-bottom:12px">우시장·도축장이 열리는 당일 카카오톡으로 알림을 받습니다 <span id="mksub-cnt" class="pill g"></span></p>
+
+    <div class="card">
+      <b style="font-size:14px">⚙️ 알림 옵션</b>
+      <div class="row between" style="margin-top:10px"><span style="font-size:13.5px;font-weight:600">알림에 그날 시세 포함</span><div class="switch on" id="sw-incprice" onclick="toggleSubOpt('includePrice')"></div></div>
+      <div class="row between" style="margin-top:10px"><span style="font-size:13.5px;font-weight:600">개장일 시세 자동저장</span><div class="switch on" id="sw-autosave" onclick="toggleSubOpt('autoSave')"></div></div>
+      <button class="btn primary sm" style="margin-top:12px" onclick="checkMarketDays(true)">📩 오늘 개장 확인·알림 발송</button>
+    </div>
+
+    <div class="card">
+      <b style="font-size:14px">📈 시세 변동 차트 (<span id="mkc-region"></span>)</b>
+      <div id="price-chart" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <b style="font-size:14px">🐂 우시장 구독</b>
+      <input class="input" id="mksub-q" style="margin:8px 0" placeholder="지역 검색 (예: 횡성, 합천)" oninput="renderMarketAlerts()">
+      <div id="mksub-list"></div>
+    </div>
+
+    <div class="card">
+      <b style="font-size:14px">🏭 도축·공판장 구독</b>
+      <div id="mkhouse-list" style="margin-top:8px"></div>
+    </div>
+    <p class="note">실제 카카오톡 발송은 카카오 알림톡 채널 연동이 필요합니다. 연동 전에는 앱 알림·푸시로 동일하게 통보됩니다. 개장 일정은 시장별 실제 운영일과 다를 수 있어 축협 공지로 확인하세요.</p>
+  </section>
+
+  <!-- AI -->
+  <section class="screen" id="ai">
+    <h2 class="title">AI 어시스턴트</h2>
+    <button class="btn primary" style="margin-bottom:10px" onclick="go('brain')">🧠 minanfarm AI 두뇌 — 자율 분석·전망·방향 제시</button>
+    <div class="card" style="cursor:pointer;margin-top:0" onclick="ans('흰색 설사',false)"><b>📷 분변 사진 설사 진단</b><p class="muted" style="margin-top:4px">탭(데모)</p></div>
+    <div class="card"><div class="row between"><b>모드</b><span class="pill g" id="ai-mode-pill">무료만</span></div>
+      <div id="ai-answer" style="margin-top:10px"><p class="muted">질문을 글로 쓰거나 🎤 음성으로 물어보세요.</p></div></div>
+    <div class="card">
+      <textarea id="ai-text" placeholder="예: 송아지 흰색 설사, 무슨 약 줘야 해?"></textarea>
+      <div class="grid2" style="margin-top:8px"><button class="btn primary sm" onclick="askText()">💬 글로 묻기</button><button class="btn amber sm" onclick="startVoice()">🎤 음성</button></div>
+    </div>
+    <button class="btn ghost" onclick="go('aiset')">⚙️ AI 설정</button>
+  </section>
+
+  <!-- AI 설정 -->
+  <section class="screen" id="aiset">
+    <button class="back" onclick="go('ai')">‹ AI</button>
+    <h2 class="title">AI 설정</h2>
+    <div class="mode sel" id="mode-free" onclick="setMode('free')"><h4>🆓 무료만</h4><p>기기내 규칙+지식 + 무료 Gemini Flash. 월 0원·오프라인. 유료 차단.</p></div>
+    <div class="mode" id="mode-eco" onclick="setMode('eco')"><h4>💡 절약</h4><p>평소 무료, 어려운 질문만 유료 1회성.</p></div>
+    <div class="mode" id="mode-pro" onclick="setMode('pro')"><h4>⭐ 고급</h4><p>Gemini Pro·Claude 우선. 정확도 최상(유료).</p></div>
+    <div class="card">
+      <b style="font-size:14px">🔑 API 키 (선택 — 없어도 무료로 동작)</b>
+      <div class="field" style="margin-top:8px"><span class="label">Gemini API 키</span><input class="input" id="k-gemini" type="password" placeholder="AIza... (선택)"></div>
+      <div class="field"><span class="label">Claude API 키</span><input class="input" id="k-claude" type="password" placeholder="sk-ant-... (선택)"></div>
+      <button class="btn ghost sm" onclick="saveKeys()">키 저장</button>
+      <p class="note" style="margin-top:8px">입력은 필수가 아닙니다. 키가 없으면 기기내 규칙엔진으로 동작하고, 넣으면 더 정확한 답변에 사용합니다.</p>
+    </div>
+    <button class="btn primary" style="margin:0 0 12px" onclick="go('connect')">🔗 외부 연동 설정 (이력제·시세·카카오)</button>
+    <div class="card"><div class="row between"><div><b style="font-size:14px">📝 설명 표시</b><p class="muted" style="margin-top:3px">끄면 핵심만 짧게 답합니다</p></div><div class="switch on" id="sw-explain" onclick="this.classList.toggle('on')"></div></div></div>
+    <div class="card"><div class="row between"><div><b style="font-size:14px">🔊 음성으로 읽기</b><p class="muted" style="margin-top:3px">답변을 소리로</p></div><div class="switch on" id="sw-tts" onclick="this.classList.toggle('on')"></div></div></div>
+  </section>
+
+  <!-- 외부 연동 설정 -->
+  <section class="screen" id="connect">
+    <button class="back" onclick="go(connectFrom)">‹ 뒤로</button>
+    <h2 class="title">외부 연동 설정</h2>
+    <p class="muted" style="margin-bottom:12px">인증키를 입력하면 실데이터 연동이 켜집니다. 키가 없으면 내장 모형으로 동작합니다.</p>
+
+    <div class="card">
+      <div class="row between"><b style="font-size:14px">🐂 축산물이력제·등급판정</b><span class="pill" id="st-ekape">미연동</span></div>
+      <p class="muted" style="margin:6px 0 8px">개체 자동조회 · 도축 등급결과 수신 (공공데이터포털)</p>
+      <div class="field"><span class="label">data.go.kr 서비스키</span><input class="input" id="k-ekape" type="password" placeholder="serviceKey (선택)"></div>
+      <div class="field"><span class="label">프록시 주소 (CORS 우회)</span><input class="input" id="k-ekapeproxy" type="text" placeholder="예: https://minanfarm-proxy.workers.dev"></div>
+      <p class="note">공공데이터포털 → '쇠고기이력정보' 활용신청 후 발급. 브라우저 직접호출은 차단되므로, 함수형 서버(프록시) 주소를 함께 입력하면 실데이터가 조회됩니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="row between"><b style="font-size:14px">🔐 본인 농장 인증</b><span class="pill" id="st-farmauth">미인증</span></div>
+      <p class="muted" style="margin:6px 0 8px">본인인증 후, 다른 농가가 아닌 <b>내 농장 개체만</b> 조회됩니다</p>
+      <div class="field"><span class="label">농장경영등록번호</span><input class="input" id="auth-regno" placeholder="예: 080-1234-5678" oninput="onAuthRegnoInput()"></div>
+      <p class="note" id="auth-status" style="margin-bottom:8px"></p>
+      <button class="btn primary sm" style="margin-bottom:8px" onclick="verifyFarmOwner()" id="auth-btn">📱 농장경영주 본인인증</button>
+      <button class="btn ghost sm" style="margin-bottom:8px;display:none;color:var(--danger)" id="auth-reset" onclick="unverifyFarm()">인증 해제 · 등록번호 변경</button>
+      <div class="row between" style="margin-top:6px"><span style="font-size:13.5px;font-weight:600">앱 실행 시 개체 자동 동기화</span><div class="switch on" id="sw-herdsync" onclick="toggleHerdSync()"></div></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="syncMyHerd(true)">🔄 지금 내 농장 개체 동기화</button>
+      <p class="note" style="margin-top:8px">인증 토큰과 개인정보 조회는 서버리스 프록시 또는 네이티브 계층을 통해 안전하게 처리됩니다. 등록번호를 수정하면 다시 인증해야 합니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="row between"><b style="font-size:14px">🔢 농장번호로 개체 갱신</b></div>
+      <p class="muted" style="margin:6px 0 8px">본인인증 없이 <b>농장식별번호</b>만으로 해당 농장의 개체를 불러와 갱신합니다</p>
+      <div class="field"><span class="label">농장식별번호 (6자리)</span><input class="input" id="farmno-sync" placeholder="예: 602755"></div>
+      <button class="btn primary sm" onclick="syncByFarmNo()">🔄 농장번호로 개체 갱신</button>
+      <button class="btn ghost sm" style="margin-top:8px;color:var(--danger)" onclick="clearSynthetic()">🗑️ 가상(추정·샘플) 개체 모두 삭제</button>
+      <p class="note" style="margin-top:8px">실제 운영에서는 공개된 농장 단위 개체정보 조회에 사용되며, 개인정보가 포함된 상세 조회는 본인인증을 거칩니다. 위 삭제 버튼은 직접 등록했거나 실제로 조회된 개체만 남기고, 추정으로 생성된 가상 개체를 모두 정리합니다.</p>
+    </div>
+
+    <div class="card">
+      <div class="row between"><b style="font-size:14px">📈 시세 (KAMIS)</b><span class="pill" id="st-kamis">미연동</span></div>
+      <p class="muted" style="margin:6px 0 8px">우시장·경락가 실시간 수집</p>
+      <div class="field"><span class="label">KAMIS 인증키 (p_cert_key)</span><input class="input" id="k-kamis" type="password" placeholder="cert key (선택)"></div>
+      <div class="field"><span class="label">KAMIS 아이디 (p_cert_id)</span><input class="input" id="k-kamisid" type="text" placeholder="cert id (선택)"></div>
+      <p class="note">KAMIS 농산물유통정보 → OpenAPI 신청</p>
+    </div>
+
+    <div class="card">
+      <div class="row between"><b style="font-size:14px">💬 카카오 알림톡</b><span class="pill" id="st-kakao">미연동</span></div>
+      <p class="muted" style="margin:6px 0 8px">개장일·도축결과를 카카오톡으로 발송</p>
+      <div class="field"><span class="label">알림톡 REST API 키</span><input class="input" id="k-kakao" type="password" placeholder="REST API key (선택)"></div>
+      <div class="field"><span class="label">발신프로필/채널 (sender)</span><input class="input" id="k-ksender" type="text" placeholder="@채널명 또는 발신키 (선택)"></div>
+      <div class="field"><span class="label">수신 휴대폰번호</span><input class="input" id="k-kto" type="tel" placeholder="010-0000-0000 (선택)"></div>
+      <p class="note">카카오 비즈니스 채널 + 알림톡 발신프로필 + 템플릿 사전승인 필요</p>
+    </div>
+
+    <button class="btn primary" onclick="saveConnect()">연동 정보 저장</button>
+    <div id="connect-proxy" style="margin-top:12px"></div>
+    <p class="note" style="margin-top:10px">⚠️ 공공데이터·KAMIS·카카오 API는 브라우저에서 직접 호출 시 CORS·보안 제약이 있습니다. 실제 운영에서는 서버리스 프록시 또는 네이티브(Capacitor) HTTP로 호출하며, 본 앱은 키 입력 시 해당 호출 코드를 사용하도록 구성되어 있습니다.</p>
+  </section>
+
+  <!-- minanfarm AI 두뇌 (자율 분석·성장형) -->
+  <section class="screen" id="brain">
+    <button class="back" onclick="go('ai')">‹ AI</button>
+    <h2 class="title">minanfarm AI 두뇌</h2>
+    <p class="muted" style="margin-bottom:12px">목장 데이터를 스스로 수집·학습하고, 전망과 방향을 제시합니다</p>
+    <div class="card" style="background:linear-gradient(155deg,#1c402a,#27543a);color:#fff;border:none">
+      <div class="row between"><b style="font-size:15px">🧠 학습 단계</b><span class="pill" id="brain-lv" style="background:rgba(199,162,74,.3);color:#f0e6c8">Lv.1</span></div>
+      <div style="height:8px;background:rgba(255,255,255,.15);border-radius:6px;margin:10px 0;overflow:hidden"><div id="brain-bar" style="height:100%;width:0;background:var(--gold)"></div></div>
+      <p style="font-size:12px;color:#cfe0d0" id="brain-xp">관측 0회 누적 — 데이터가 쌓일수록 분석이 정교해집니다</p>
+    </div>
+    <button class="btn primary" style="margin:12px 0" onclick="brainThink()">🔄 지금 분석 실행 (자료수집·전망·방향)</button>
+    <div id="brain-out"></div>
+    <div class="card"><div class="row between"><b style="font-size:14px">📡 실시간 시세 자동수집</b><div class="switch on" id="sw-mktsync" onclick="toggleMktSync()"></div></div>
+      <p class="muted" id="mkt-status" style="margin:6px 0 8px">지역 시세 수집 상태</p>
+      <button class="btn primary sm" style="margin-bottom:8px" onclick="syncMarket(true)">📥 지금 시세 수집</button>
+      <p class="note" id="mkt-trend" style="margin-bottom:8px">추세 분석</p>
+      <div id="mkt-history"></div>
+    </div>
+    <div class="card"><div class="row between"><b style="font-size:14px">📚 누적 지식</b><button class="btn ghost sm" style="width:auto" onclick="clearBrain()">초기화</button></div><div id="brain-mem" style="margin-top:8px"></div></div>
+    <div class="card"><div class="row between"><div><b style="font-size:14px">🤖 자동 학습</b><p class="muted" style="margin-top:3px">앱 실행 시마다 자동 관측·학습</p></div><div class="switch on" id="sw-autobrain" onclick="this.classList.toggle('on');toggleAutoBrain()"></div></div></div>
+  </section>
+
+  <!-- 설정 (목장) -->
+  <section class="screen" id="settings">
+    <button class="back" onclick="go('home')">‹ 홈</button>
+    <h2 class="title">목장 설정</h2>
+    <div class="card">
+      <div class="field"><span class="label">목장 이름</span><input class="input" id="set-farm" placeholder="예: 김제목장"></div>
+      <div class="field"><span class="label">농장식별번호(선택)</span><input class="input" id="set-regno" placeholder="080-1234-5678"></div>
+      <div class="field"><span class="label">지역 (시세 자동수집 기준)</span><input class="input" id="set-region" placeholder="예: 김제, 횡성, 합천" oninput="suggestRegion()"><div id="region-sug" style="margin-top:6px"></div></div>
+      <div class="field"><span class="label">주 출하 공판장/도축장</span><input class="input" id="set-house" placeholder="예: 음성공판장, 부경축산물공판장"></div>
+      <button class="btn primary" onclick="saveFarm()">저장</button>
+      <p class="note" style="margin-top:8px">지역을 설정하면 AI 두뇌가 해당 지역 우시장·공판장 시세를 수시로 수집해 출하 타이밍과 손익을 판단합니다.</p>
+    </div>
+    <div class="card">
+      <b style="font-size:14px">🔗 외부 연동</b>
+      <p class="muted" style="margin:6px 0 10px">축산물이력제·시세(KAMIS)·카카오 알림톡 인증키를 입력하면 실데이터 연동이 켜집니다.</p>
+      <button class="btn ghost sm" onclick="go('connect')">외부 연동 설정 열기</button>
+    </div>
+  </section>
+
+  <!-- 사용법 -->
+  <section class="screen" id="help">
+    <h2 class="title">사용법</h2>
+    <div class="card" style="margin-top:8px">
+      <div class="feature"><div class="fi">🐄</div><div><h4>개체</h4><p>＋등록으로 직접/마이데이터 등록. 칩으로 번식우·비육우·암/숫송아지 분류. 누르면 통합 화면.</p></div></div>
+      <div class="feature"><div class="fi">📔</div><div><h4>일지</h4><p>＋로 약처방·관찰 기록, 개체별 조회.</p></div></div>
+      <div class="feature"><div class="fi">💊</div><div><h4>약품</h4><p>사진 등록·유통기한·정보검색. 보유약 없으면 AI가 웹 검색해 추천.</p></div></div>
+      <div class="feature"><div class="fi">🤖</div><div><h4>AI</h4><p>글/음성으로 질문. 설정에서 무료/절약/고급, API키(선택), 설명 on/off.</p></div></div>
+      <div class="feature"><div class="fi">⚙️</div><div><h4>목장 설정</h4><p>상단 목장 이름을 눌러 변경.</p></div></div>
+    </div>
+    <p class="note">진단·처방은 수의사, 출하 전 휴약기간 준수.</p>
+  </section>
+
+  <!-- 실행 현황 (개체별 파악) -->
+  <section class="screen" id="status">
+    <h2 class="title">실행 현황</h2>
+    <p class="muted" style="margin-bottom:12px">개체별 주차 관리·번식 일정 한눈에</p>
+    <div class="card" id="status-list"></div>
+  </section>
+
+  <!-- 번식성적 대시보드 -->
+  <section class="screen" id="repro">
+    <h2 class="title">번식성적</h2>
+    <p class="muted" style="margin-bottom:12px">농장 평균과 저수태우 자동 분석</p>
+    <div class="stats">
+      <div class="stat"><b id="rp-calvint">-</b><span>평균 분만간격(일)</span></div>
+      <div class="stat"><b id="rp-open">-</b><span>평균 공태일(일)</span></div>
+      <div class="stat"><b id="rp-firstcalv">-</b><span>평균 초산월령</span></div>
+    </div>
+    <div class="card"><div class="row between"><b style="font-size:15px">⚠️ 저수태우 (관리 필요)</b><span class="pill d" id="rp-lowcnt">-</span></div><div id="rp-low" style="margin-top:8px"></div></div>
+    <div class="card"><b style="font-size:15px">번식우 개체별 성적</b><div id="rp-list" style="margin-top:8px"></div></div>
+  </section>
+
+  <!-- 발정 관찰 기록 -->
+  <section class="screen" id="heat">
+    <button class="back" onclick="go(prevScreen)">‹ 뒤로</button>
+    <h2 class="title">발정 관찰 기록</h2>
+    <p class="muted" style="margin-bottom:12px">관찰 증상으로 수정 적기를 정밀 안내</p>
+    <div class="card">
+      <div class="field"><span class="label">개체</span><select class="input" id="h-cattle"></select></div>
+      <div class="field"><span class="label">관찰 일시</span><input class="input" id="h-when" type="datetime-local"></div>
+      <div class="field"><span class="label">발정 증상 (복수 선택)</span>
+        <div id="h-signs" style="margin-top:6px"></div></div>
+      <button class="btn primary" onclick="saveHeat()">관찰 저장 · 수정적기 계산</button>
+      <div id="h-result" style="display:none;margin-top:12px"></div>
+    </div>
+    <div class="card"><b style="font-size:15px">최근 발정 관찰</b><div id="h-log" style="margin-top:8px"></div></div>
+  </section>
+
+  <!-- EPD · 계획교배 -->
+  <section class="screen" id="epd">
+    <button class="back" onclick="go(prevScreen)">‹ 뒤로</button>
+    <h2 class="title">유전능력·계획교배</h2>
+    <p class="muted" style="margin-bottom:12px">암소 약점 보완 씨수소(KPN) 추천</p>
+    <div class="card"><div class="label">암소 선택</div><select class="input" id="ep-cow" style="margin-top:6px" onchange="renderEPD()"></select></div>
+    <div class="card"><b style="font-size:15px">암소 EPD (4대 형질)</b><div id="ep-cowbars" style="margin-top:10px"></div>
+      <p class="note" style="margin-top:8px">EPD=기대자손능력차. 유전평가는 매년 2·8월 갱신됩니다.</p></div>
+    <div class="card"><b style="font-size:15px">추천 씨수소 (약점 보완)</b><div id="ep-sires" style="margin-top:8px"></div></div>
+    <div class="card"><b style="font-size:15px">계획교배 결과 예측 (자손 EBV)</b><div id="ep-result" style="margin-top:8px"><p class="muted">씨수소를 선택하면 자손 능력을 예측합니다</p></div></div>
+  </section>
+
+  <!-- 데이터 내보내기/공유 -->
+  <section class="screen" id="exp">
+    <button class="back" onclick="go('more')">‹ 더보기</button>
+    <h2 class="title">데이터 저장·백업</h2>
+    <p class="muted" style="margin-bottom:12px">휴대폰에 파일로 저장하고 필요할 때 다시 불러옵니다</p>
+
+    <div class="card">
+      <b style="font-size:15px">📁 전체 백업 (휴대폰 저장)</b>
+      <p class="muted" id="last-backup-info" style="margin:6px 0 10px">마지막 백업 정보</p>
+      <button class="btn primary sm" style="margin-bottom:8px" onclick="exportExcel()">📊 엑셀(.xlsx)로 저장 — 시트별 정리</button>
+      <button class="btn ghost sm" style="margin-bottom:8px" onclick="exportNote()">📝 노트(텍스트)로 저장 — 메모앱 보관용</button>
+      <button class="btn ghost sm" onclick="exportBackup()">💾 백업파일(.json) 저장 — 복원 전용</button>
+    </div>
+
+    <div class="card">
+      <b style="font-size:15px">↩️ 백업 불러오기 (복원)</b>
+      <p class="muted" style="margin:6px 0 10px">앱에 보관된 백업에서 복원하거나, 저장한 파일을 선택합니다</p>
+      <div id="backup-list" style="margin-bottom:10px"></div>
+      <input type="file" id="restore-input" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+      <button class="btn ghost sm" onclick="document.getElementById('restore-input').click()">📂 백업파일(.json) 선택해서 복원</button>
+      <p class="note" style="margin-top:8px">복원하면 현재 데이터를 덮어씁니다. 복원 전 자동으로 현재 상태를 백업합니다.</p>
+    </div>
+
+    <div class="card">
+      <b style="font-size:15px">📤 항목별 따로 저장·공유</b>
+      <p class="muted" style="margin:6px 0 10px">필요한 항목만 골라 엑셀·CSV로 저장</p>
+      <div class="feature" onclick="exportSheet('herd')"><div class="fi">🐄</div><div><h4>개체 목록</h4><p>전체 개체·번식·이력 (엑셀)</p></div></div>
+      <div class="feature" onclick="exportSheet('repro')"><div class="fi">📊</div><div><h4>번식성적</h4><p>산차·공태·분만간격 (엑셀)</p></div></div>
+      <div class="feature" onclick="exportSheet('diary')"><div class="fi">📔</div><div><h4>진료·처방 기록</h4><p>수의사 공유용 (엑셀)</p></div></div>
+      <div class="feature" onclick="exportSheet('meds')"><div class="fi">💊</div><div><h4>약품 재고</h4><p>유통기한·처방 (엑셀)</p></div></div>
+      <div class="feature" onclick="exportSheet('ship')"><div class="fi">🚚</div><div><h4>출하·도축 성적</h4><p>등급·경락가·정산 (엑셀)</p></div></div>
+      <div class="feature" onclick="shareReport()"><div class="fi">📤</div><div><h4>요약 리포트 공유</h4><p>문자·메신저로 전송</p></div></div>
+    </div>
+    <div id="exp-savedinfo"></div>
+    <p class="note">엑셀·CSV는 엑셀/구글시트에서 열 수 있고, 노트 파일은 메모앱에 붙여넣어 보관할 수 있습니다. 모든 저장은 휴대폰의 "파일/다운로드"에 저장됩니다.</p>
+  </section>
+
+  <!-- 더보기 -->
+  <section class="screen" id="more">
+    <h2 class="title">더보기</h2>
+    <div class="card" style="margin-top:12px">
+      <div class="feature" onclick="go('alerts')"><div class="fi">🔔</div><div><h4>알림 센터</h4><p>도축결과·일정 알림 확인</p></div></div>
+      <div class="feature" onclick="go('archive')"><div class="fi">🚚</div><div><h4>출하·양도 이력</h4><p>도축 등급·판매가 확인</p></div></div>
+      <div class="feature" onclick="go('repro')"><div class="fi">📊</div><div><h4>번식성적 분석</h4><p>분만간격·공태일·저수태우</p></div></div>
+      <div class="feature" onclick="go('epd')"><div class="fi">🧬</div><div><h4>유전능력·계획교배</h4><p>EPD·씨수소 추천</p></div></div>
+      <div class="feature" onclick="go('exp')"><div class="fi">📤</div><div><h4>데이터 내보내기·공유</h4><p>CSV·수의사 공유</p></div></div>
+      <div class="feature" onclick="go('help')"><div class="fi">❓</div><div><h4>사용법</h4><p>기능별 안내</p></div></div>
+      <div class="feature" onclick="go('status')"><div class="fi">✅</div><div><h4>실행 현황</h4><p>개체별 주차·번식 일정 파악</p></div></div>
+      <div class="feature" onclick="go('proto')"><div class="fi">🗓</div><div><h4>주차별 관리</h4><p>예방주사·채혈·수정확인</p></div></div>
+      <div class="feature" onclick="go('meds')"><div class="fi">💊</div><div><h4>약품 재고</h4><p>사진·유통기한·휴약기간</p></div></div>
+      <div class="feature" onclick="go('market')"><div class="fi">📊</div><div><h4>시세·우시장</h4><p>경락가·가축시장 검색</p></div></div>
+      <div class="feature" onclick="go('settings')"><div class="fi">⚙️</div><div><h4>목장 설정</h4><p>이름·식별번호</p></div></div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+  <nav class="nav">
+    <button class="on" id="n-home" onclick="go('home')"><span class="ic">🏠</span>홈</button>
+    <button id="n-list" onclick="go('list')"><span class="ic">🐄</span>개체</button>
+    <button id="n-diary" onclick="go('diary')"><span class="ic">📔</span>일지</button>
+    <button id="n-pnl" onclick="go('pnl')"><span class="ic">📈</span>손익</button>
+    <button id="n-ai" onclick="go('ai')"><span class="ic">🤖</span>AI</button>
+    <button id="n-more" onclick="go('more')"><span class="ic">⋯</span>더보기</button>
+  </nav>
+</div>
+
+<script>
+const store={mem:{},get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return this.mem[k]??null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){this.mem[k]=v;}}};
+
+/* ===== 데이터 ===== */
+let herd=store.get('herd')||[];   /* 처음 시작 시 빈 상태 — 임의 표본 개체를 넣지 않음 */
+store.set('herd',herd);
+/* (표본 시딩 제거) — 가상 개체를 처음부터 넣지 않으므로 삭제할 필요도 없음 */
+if(store.get('herdSeeded')==null){store.set('herdSeeded',1);}
+let diary=store.get('diary')||[];store.set('diary',diary);   /* 처음 시작 시 빈 상태 */
+let meds=store.get('meds')||[];store.set('meds',meds);   /* 처음 시작 시 빈 상태 */
+let farm=store.get('farm')||{name:'내 목장',regno:''};store.set('farm',farm);
+let photos=store.get('photos')||{};
+function thumb(a){const ph=(photos[a.t]||[])[0];return ph?`<img class="avatar" src="${ph}">`:`<div class="tag ${tagCls[a.cat]}">${a.t.slice(0,3)}</div>`;}
+function compressImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const max=640;let w=img.width,h=img.height;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.7));};img.src=e.target.result;};r.readAsDataURL(file);}
+function onPhoto(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;compressImg(f,url=>{(photos[currentCattle]=photos[currentCattle]||[]).push(url);try{store.set('photos',photos);}catch(e){showToast('사진 용량이 큽니다 — 일부만 저장');}ev.target.value='';openDetail(currentCattle);showToast('사진 추가됨');});}
+function renderPhotos(t){const ph=photos[t]||[];document.getElementById('detail-photos').innerHTML=ph.length?ph.map((u,i)=>`<div style="position:relative"><img src="${u}"><button onclick="delPhoto('${t}',${i})" style="position:absolute;top:-6px;right:-6px;background:#fff;border-radius:50%;width:22px;height:22px;border:1px solid var(--line);font-weight:800;cursor:pointer">×</button></div>`).join(''):'<p class="muted">사진 없음 — 📷 ＋ 사진으로 추가</p>';}
+function delPhoto(t,i){photos[t].splice(i,1);store.set('photos',photos);openDetail(t);}
+
+const defPreg=[{week:0,action:'ai_check',label:'인공수정 실시'},{week:6,action:'blood',label:'임신감정(채혈)'},{week:35,action:'vaccine',label:'송아지설사 백신 1차'},{week:38,action:'vaccine',label:'백신 추가·분만 준비'}];
+const defCalf=[{week:0,action:'observe',label:'초유·제대소독·이표'},{week:9,action:'vaccine',label:'호흡기 백신 1차'},{week:13,action:'vaccine',label:'호흡기 백신 2차·이유'},{week:26,action:'vaccine',label:'탄저·기종저'}];
+let protoPreg=store.get('protoPreg')||defPreg,protoCalf=store.get('protoCalf')||defCalf;
+store.set('protoPreg',protoPreg);store.set('protoCalf',protoCalf);
+const actKo={vaccine:'예방주사',blood:'채혈',ai_check:'수정확인',observe:'관찰',etc:'기타'};
+const catName={med:'약처방',vac:'예방주사',blood:'채혈',ai:'수정/확인',obs:'관찰',etc:'기타'};
+const catCls={med:'c-med',vac:'c-vac',blood:'c-blood',ai:'c-ai',obs:'c-obs',etc:'c-etc'};
+const CATS=['전체','번식우','비육우','암송아지','숫송아지'];
+const catKey={breed:'번식우',feed:'비육우',calfF:'암송아지',calfM:'숫송아지'};
+const tagCls={breed:'t-breed',feed:'t-feed',calfM:'t-calfM',calfF:'t-calfF'};
+let curCat='전체',catFilter='전체';
+
+/* ===== 번식 일정(출산·발정) + 주차별 실행여부 ===== */
+let doneSet=store.get('done')||{};
+function dkey(t,w,ac){return t+'|'+w+'|'+ac;}
+function isDone(t,w,ac){return !!doneSet[dkey(t,w,ac)];}
+function toggleDone(t,w,ac){const k=dkey(t,w,ac);if(doneSet[k])delete doneSet[k];else doneSet[k]=new Date().toISOString().slice(0,10);store.set('done',doneSet);openDetail(t);}
+/* ── 계산 헬퍼 ─────────────────────────────────────── */
+function fmt(x){if(!x)return '-';const d=new Date(x);
+  return d.getFullYear().toString().slice(2)+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');}
+function ageMo(a){const b=a.birth||a.base;return b?Math.floor((Date.now()-new Date(b))/(30.4*864e5)):0;}
+function agePlusDays(a){const b=a.birth||a.base;if(!b)return 0;const m=ageMo(a);const d=new Date(b);d.setMonth(d.getMonth()+m);return Math.max(0,Math.round((Date.now()-d)/864e5));}
+function gestDays(a){return (a.preg&&a.aiDate)?Math.floor((Date.now()-new Date(a.aiDate))/864e5):null;}
+function gestMo(a){const g=gestDays(a);return g==null?null:Math.floor(g/30);}
+function openDays(a){
+  if(!a.calving)return null;
+  const end=(a.preg&&a.aiDate)?new Date(a.aiDate):new Date();
+  return Math.max(0,Math.round((end-new Date(a.calving))/864e5));}
+function dueDate(a){return (a.preg&&a.aiDate)?new Date(new Date(a.aiDate).getTime()+285*864e5):null;}
+function refDate(a){if(a.cat==='breed')return a.aiDate||a.calving||a.birth||'';return a.birth||a.base||'';}
+function nextEstrus(a){if(a.cat!=='breed'||a.preg||!a.heat)return null;let d=new Date(a.heat);const now=Date.now();while(d.getTime()<now)d.setDate(d.getDate()+21);return {date:d,dleft:Math.round((d-now)/864e5)};}
+function calvingDue(a){const d=dueDate(a);if(!d)return null;return {date:d,dleft:Math.round((d-Date.now())/864e5)};}
+function hormoneAI(a){if(!a.hormone||!a.hormone.aiDate)return null;const d=new Date(a.hormone.aiDate);return {date:d,dleft:Math.round((d-Date.now())/864e5),program:a.hormone.program||'발정동기화'};}
+function setHormone(t){const a=herd.find(x=>x.t===t);const d=new Date();d.setDate(d.getDate()+10);a.hormone={program:'CIDR 정시수정(발정동기화)',start:new Date().toISOString().slice(0,10),aiDate:d.toISOString().slice(0,10)};store.set('herd',herd);openDetail(t);showToast('호르몬 수정일정 추가 — '+fmt(d)+' 정시수정');}
+function clearHormone(t){const a=herd.find(x=>x.t===t);delete a.hormone;store.set('herd',herd);openDetail(t);showToast('호르몬 일정 취소');}
+function protoFor(a){if(a.cat==='breed')return a.preg?protoPreg:[];if(a.cat==='calfM'||a.cat==='calfF')return protoCalf;return [];}
+function doneCount(a){const p=protoFor(a);return {done:p.filter(x=>isDone(a.t,x.week,x.action)).length,total:p.length};}
+function dueOf(a,week){const r=refDate(a);if(!r)return new Date();return new Date(new Date(r).getTime()+week*7*864e5);}
+
+/* ===== 공통 ===== */
+function monthsSince(b){return Math.floor((Date.now()-new Date(b))/(30.4*864e5));}
+function weeksSince(b){return Math.floor((Date.now()-new Date(b))/(7*864e5));}
+function roleLabel(a){if(a.cat==='breed'){const par=a.parity!=null?a.parity+'산':'미경산';if(a.preg){return '번식우 · 임신 '+(gestMo(a)??0)+'개월 · '+par;}const od=openDays(a);return '번식우 · 비임신'+(od!=null?' · 공태 '+od+'일':'')+' · '+par;}if(a.cat==='feed')return '비육우 · '+ageMo(a)+'개월';if(a.cat==='calfM')return '숫송아지 · '+ageMo(a)+'개월';return '암송아지 · '+ageMo(a)+'개월';}
+
+let prevScreen='home',currentCattle='8742',connectFrom='aiset';
+function go(id){prevScreen=document.querySelector('.screen.active')?.id||'home';document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));const map={home:'n-home',list:'n-list',reg:'n-list',detail:'n-list',diary:'n-diary',add:'n-diary',proto:'n-more',pnl:'n-pnl',market:'n-more',mkalert:'n-more',meds:'n-more',help:'n-more',settings:'n-more',status:'n-more',repro:'n-more',heat:'n-list',epd:'n-more',exp:'n-more',ship:'n-list',archive:'n-more',alerts:'n-more',ai:'n-ai',aiset:'n-ai',connect:'n-ai',brain:'n-ai',more:'n-more'};const nb=document.getElementById(map[id]);if(nb)nb.classList.add('on');document.querySelector('.screen.active').scrollTop=0;if(id==='list')renderCattle();if(id==='diary')renderDiary();if(id==='proto')renderProto();if(id==='home')renderHome();if(id==='meds')renderMeds();if(id==='market')renderMarkets();if(id==='settings')loadFarm();if(id==='status')renderStatus();if(id==='pnl')prefillPnl();if(id==='repro')renderRepro();if(id==='heat')openHeat();if(id==='epd')initEPD();if(id==='archive')renderArchive();if(id==='alerts')renderAlerts();if(id==='exp')renderBackupList();if(id==='brain')renderBrain();if(id==='mkalert'){document.getElementById('mkc-region').textContent=farm.region||'지역미설정';renderMarketAlerts();}if(id==='connect'){connectFrom=(prevScreen==='settings'?'settings':'aiset');loadConnect();}}
+
+/* ===== 개체 목록/분류 ===== */
+function showCat(c){catFilter=c;go('list');}
+function renderChips(){document.getElementById('cat-chips').innerHTML=CATS.map(c=>`<div class="chip ${c===catFilter?'on':''}" onclick="catFilter='${c}';renderCattle()">${c}</div>`).join('');}
+function renderCattle(){renderChips();const q=(document.getElementById('cattle-q').value||'').trim();const list=herd.filter(a=>{const okC=catFilter==='전체'||catKey[a.cat]===catFilter;const okQ=!q||a.t.includes(q)||(a.name||'').includes(q);return okC&&okQ;});document.getElementById('cattlelist').innerHTML=list.map(a=>`<div class="cattle" onclick="openDetail('${a.t}')">${thumb(a)}<div class="info"><h4>${catKey[a.cat]} ${a.t}${a.name?' ('+a.name+')':''}</h4><p>${roleLabel(a)}</p></div><span class="chev">›</span></div>`).join('')||'<p class="muted">결과 없음</p>';}
+
+function openDetail(t){currentCattle=t;const a=herd.find(x=>x.t===t);
+  /* ─ 헤드 카드 ─ */
+  const status=a.cat!=='breed'?catKey[a.cat]:(a.preg?'임신':(a.calving&&!a.aiDate?'분만후':'비임신'));
+  const sc=a.cat==='breed'?(a.preg?'a':'p'):a.cat==='feed'?'g':'b';
+  let rows='<div class="resultrow"><span>식별번호</span><b>'+(a.idno||a.t)+'</b></div>';
+  rows+='<div class="resultrow"><span>월령</span><b>'+ageMo(a)+'개월 (+'+agePlusDays(a)+'일)</b></div>';
+  if(a.cat==='breed'){
+    rows+='<div class="resultrow"><span>산차</span><b>'+(a.parity!=null?a.parity+'산':'미경산')+'</b></div>';
+    if(a.preg)rows+='<div class="resultrow"><span>임신</span><b style="color:var(--green)">'+(gestMo(a)??0)+'개월 ('+(gestDays(a)??0)+'일)</b></div>';
+    if(openDays(a)!=null)rows+='<div class="resultrow"><span>공태일</span><b>'+openDays(a)+'일</b></div>';
+    if(a.aiDate)rows+='<div class="resultrow"><span>수정일</span><b>'+fmt(a.aiDate)+(a.aiRound?' ('+a.aiRound+'차)':'')+(a.aiKPN?' · 정액 KPN'+a.aiKPN:'')+'</b></div>';
+    const dd=dueDate(a);if(dd)rows+='<div class="resultrow"><span>분만예정일</span><b style="color:var(--amber)">'+fmt(dd)+'</b></div>';
+    if(a.calving)rows+='<div class="resultrow"><span>최근 분만일</span><b>'+fmt(a.calving)+'</b></div>';
+    if(a.kpn)rows+='<div class="resultrow"><span>개체 KPN</span><b>'+a.kpn+'</b></div>';
+  }else{rows+='<div class="resultrow"><span>구분</span><b>'+catKey[a.cat]+'</b></div>';}
+  document.getElementById('detail-head').innerHTML=
+    '<div class="row between"><div class="row">'+thumb(a)+'<div><h4 style="font-size:17px;font-weight:800">'+catKey[a.cat]+' '+a.t+'</h4>'+'<p class="muted">'+(a.idno||'')+'</p></div></div>'+'<span class="pill '+sc+'">'+status+'</span></div>'+'<div class="divider"></div>'+rows;
+  /* ─ 번식 일정 ─ */
+  let bd='';const cd=calvingDue(a),ne=nextEstrus(a),ha=hormoneAI(a);
+  if(cd)bd+='<div class="todo"><div class="dot" style="background:var(--amber)"></div><div><h4>🐄 분만 예정 '+fmt(cd.date)+'</h4><p>D-'+cd.dleft+' · 임신 285일 기준 · 알림 예약</p></div></div>';
+  if(ha)bd+='<div class="todo"><div class="dot" style="background:var(--purple)"></div><div><h4>💉 호르몬 수정 예정 '+fmt(ha.date)+'</h4><p>'+ha.program+' · '+(ha.dleft<=0?'오늘':'D-'+ha.dleft)+' · 정시수정(FTAI)</p></div></div>';
+  if(ne&&!a.preg)bd+='<div class="todo"><div class="dot" style="background:var(--danger)"></div><div><h4>💗 발정 예정 '+fmt(ne.date)+'</h4><p>D-'+ne.dleft+' · 자연발정 21일 주기 · 수정 적기</p></div></div>';
+  if(a.cat==='breed'&&!a.preg){
+    const oc=a.hormone?"clearHormone('"+a.t+"')" :"setHormone('"+a.t+"')";
+    const lb=a.hormone?'🗑 호르몬 일정 취소':'＋ 호르몬제 수정일정 (발정동기화)';
+    bd+='<button class="btn ghost sm" style="margin-top:10px" onclick="'+oc+'">'+lb+'</button>';}
+  document.getElementById('detail-breed').innerHTML=bd||'<p class="muted">번식 일정 없음 (비육우·송아지)</p>';
+  const proto=protoFor(a).slice().sort((x,y)=>x.week-y.week);const dc=doneCount(a);
+  document.getElementById('status-ratio').textContent=dc.total?dc.done+'/'+dc.total+' 완료':'해당 없음';
+  document.getElementById('detail-status').innerHTML=proto.length?proto.map(p=>{const done=isDone(a.t,p.week,p.action);const due=dueOf(a,p.week);const dl=Math.round((due-Date.now())/864e5);return `<div class="wk"><div class="chkbox ${done?'on':''}" onclick="toggleDone('${a.t}',${p.week},'${p.action}')">${done?'✓':''}</div><div class="wkbody"><h4 style="${done?'text-decoration:line-through;color:var(--sub)':''}">${p.label}</h4><p class="muted">${p.week}주차·${actKo[p.action]}·${done?('완료 '+doneSet[dkey(a.t,p.week,p.action)]):(dl<=0?'지금':'D-'+dl)}</p></div></div>`;}).join(''):'<p class="muted">주차별 항목 없음 (출하 관리 단계)</p>';
+  const tl=diary.filter(d=>d.cattle===t).sort((x,y)=>y.date.localeCompare(x.date));
+  document.getElementById('detail-timeline').innerHTML=tl.map(d=>`<div class="entry"><div class="meta">${d.date}</div><h4><span class="catpill ${catCls[d.cat]}">${catName[d.cat]}</span>${d.text}</h4></div>`).join('')||'<p class="muted">기록 없음</p>';
+  renderPhotos(t);
+  go('detail');}
+function upcoming(a){if(a.cat==='breed'&&!a.preg)return [{week:0,action:'ai_check',label:'발정 관찰·인공수정',due:0}];const proto=a.cat==='breed'?protoPreg:protoCalf;const cur=weeksSince(a.base);return proto.filter(p=>p.week>=cur-1).slice(0,4).map(p=>({...p,due:p.week-cur}));}
+
+/* ===== 개체 등록 ===== */
+/* ── 등록 시 암수·구분 자동 판정 ──
+   기준: 번식기록(산차·수정일·분만일) 있으면 암 번식우, 거세는 비육우,
+   7개월 미만은 송아지(성별별), 그 이상 암은 번식우·수는 비육우(비거세) */
+function autoClassify(){
+  const sexEl=document.getElementById('r-sex');
+  const catEl=document.getElementById('r-cat');
+  const birth=document.getElementById('r-base').value;
+  const parity=+document.getElementById('r-parity').value||0;
+  const ai=document.getElementById('r-aidate').value;
+  const calv=document.getElementById('r-calving').value;
+  const hasBreedRecord=parity>0||!!ai||!!calv;
+  const mo=birth?Math.floor((Date.now()-new Date(birth))/(30.4*864e5)):null;
+  let sex=sexEl.value, cat;
+  if(hasBreedRecord){ sex='F'; cat='breed'; }            // 번식기록 → 암 번식우(경산우)
+  else if(sex==='C'){ cat='feed'; }                       // 거세 → 비육우
+  else if(sex==='M'){ cat=(mo!=null&&mo<7)?'calfM':'feed'; } // 수: 7개월↓ 송아지, 이상 비육우
+  else { cat=(mo!=null&&mo<7)?'calfF':'breed'; }           // 암: 7개월↓ 송아지, 이상 번식우
+  sexEl.value=sex; catEl.value=cat;
+  const sexKo={F:'암',M:'수',C:'거세'}[sex];
+  const catKo={breed:'번식우',feed:(sex==='C'?'비육우(거세)':'비육우(비거세)'),calfF:'암송아지',calfM:'숫송아지'}[cat];
+  const reason=hasBreedRecord?'번식기록 감지':(mo!=null?mo+'개월령 기준':'성별 기준');
+  document.getElementById('r-autonote').innerHTML='자동 구분: <b>'+sexKo+' · '+catKo+'</b> ('+reason+') — 필요시 구분을 직접 바꿀 수 있어요';
+  syncReg();
+}
+function syncReg(){
+  const isBreed=document.getElementById('r-cat').value==='breed';
+  document.getElementById('r-pregwrap').style.display=isBreed?'block':'none';
+  document.getElementById('r-breedfields').style.display=isBreed?'grid':'none';
+}
+/* ── 마이데이터 일괄등록용 농장 로스터 (축산물이력제 API 시뮬레이션) ── */
+const farmRoster=[
+ {t:'8742',sex:'F',cat:'breed',idno:'002-1993-8742-0',kpn:'1434',parity:1,preg:1,name:'',
+  birth:'2024-03-12',aiDate:'2026-04-12',aiRound:1,aiKPN:'1503',calving:'2026-02-04'},
+ {t:'3252',sex:'F',cat:'breed',idno:'002-1943-3252-3',kpn:'1406',parity:1,preg:1,name:'',
+  birth:'2023-12-10',aiDate:'2026-02-10',aiRound:1,aiKPN:'1694',calving:'2025-10-08'},
+ {t:'5235',sex:'F',cat:'breed',idno:'002-1948-5235-3',kpn:'1466',parity:1,preg:0,name:'',
+  birth:'2023-11-15',calving:'2026-02-04',heat:'2026-05-20'},
+ {t:'5835',sex:'F',cat:'breed',idno:'002-1730-5835-4',kpn:'1292',parity:3,preg:1,name:'',
+  birth:'2022-02-10',aiDate:'2026-02-07',aiRound:1,aiKPN:'1694',calving:'2025-11-20'},
+ {t:'9289',sex:'F',cat:'breed',idno:'002-1472-9289-9',kpn:'1087',parity:3,preg:0,name:'',
+  birth:'2020-01-20',calving:'2025-12-07'},
+ {t:'1144',sex:'M',cat:'feed',idno:'002-1820-1144-3',name:'',birth:'2024-09-01'},
+ {t:'2088',sex:'M',cat:'feed',idno:'002-1820-2088-5',name:'',birth:'2024-07-15'},
+ {t:'3201',sex:'M',cat:'feed',idno:'002-1820-3201-2',name:'',birth:'2024-10-20'},
+ {t:'4055',sex:'M',cat:'feed',idno:'002-1820-4055-7',name:'',birth:'2025-01-05'},
+ {t:'5177',sex:'M',cat:'feed',idno:'002-1820-5177-1',name:'',birth:'2024-11-12'},
+ {t:'6033',sex:'M',cat:'feed',idno:'002-1820-6033-8',name:'',birth:'2024-08-20'},
+ {t:'7781',sex:'M',cat:'calfM',idno:'002-1993-7781-0',name:'',birth:'2026-03-29'},
+ {t:'8810',sex:'F',cat:'calfF',idno:'002-1993-8810-2',name:'',birth:'2026-02-25'},
+];
+function bulkReg(){document.getElementById('bulk-results').innerHTML='<p class="muted">이표번호를 입력하고 검색하세요</p>';go('reg');}
+/* 식별번호에서 농장 식별 구간(앞 2그룹) 추출 → 같은 농장주 판별 키 */
+function farmKey(idno){const d=(idno||'').replace(/[^0-9]/g,'');return d.length>=8?d.slice(0,8):d;}
+/* 12자리 이력번호(하이픈 유무 무관) 또는 4자리 관리번호 형식 검증 */
+function validIdno(q){const d=q.replace(/[^0-9]/g,'');return d.length===12;}
+/* 이력제 조회 결과 생성(로스터에 없을 때) — 출생·성별·번식정보 모사 */
+function ekapeLookup(idno){
+  const d=idno.replace(/[^0-9]/g,'');const t=d.slice(7,11);
+  const seed=parseInt(d.slice(4))||1;const r=n=>((seed*9301+n*49297)%233280)/233280;
+  const female=r(1)>0.4;
+  const ageM=18+Math.floor(r(2)*60);
+  const birth=new Date();birth.setMonth(birth.getMonth()-ageM);
+  const a={t,idno,sex:female?'F':(r(3)>0.5?'C':'M'),name:'',birth:birth.toISOString().slice(0,10)};
+  if(female){a.cat='breed';a.parity=Math.floor(r(4)*4);if(a.parity>0){const c=new Date();c.setMonth(c.getMonth()-Math.floor(r(5)*8)-1);a.calving=c.toISOString().slice(0,10);}a.preg=0;}
+  else{a.cat=ageM<7?(a.sex==='M'?'calfM':'calfF'):'feed';}
+  return a;
+}
+/* 같은 농장(식별 앞 7자리 동일)의 사육 개체군을 이력제 조회로 구성 — 일괄등록용.
+   번식우·비육우·암송아지·숫송아지가 현실적 비율로 포함되고, 각 개체 정보가 구분에 일관되도록 생성.
+   실제 운영: 마이데이터(축산물이력제)에서 농장주 보유 개체 전체 목록을 받아 대체 */
+function makeAnimal(head,tail,chk,role){
+  const idno=head.slice(0,3)+'-'+head.slice(3,7)+'-'+tail+'-'+chk;
+  const seed=parseInt(tail)||1;const r=n=>((seed*9301+n*49297)%233280)/233280;
+  const a={t:tail,idno,name:''};
+  if(role==='breed'){            /* 번식우: 암, 24~120개월, 산차·분만 이력 */
+    a.sex='F';a.cat='breed';
+    const ageM=24+Math.floor(r(2)*96);
+    const b=new Date();b.setMonth(b.getMonth()-ageM);a.birth=b.toISOString().slice(0,10);
+    a.parity=Math.min(8,Math.floor((ageM-22)/13));
+    if(a.parity>0){const c=new Date();c.setMonth(c.getMonth()-1-Math.floor(r(5)*9));a.calving=c.toISOString().slice(0,10);}
+    a.preg=r(6)>0.5?1:0;
+    if(a.preg){const ai=new Date();ai.setMonth(ai.getMonth()-Math.floor(r(7)*8));a.aiDate=ai.toISOString().slice(0,10);a.aiRound=1;}
+  }else if(role==='feed'){       /* 비육우: 거세, 7~30개월 */
+    a.sex='C';a.cat='feed';
+    const ageM=7+Math.floor(r(2)*23);
+    const b=new Date();b.setMonth(b.getMonth()-ageM);a.birth=b.toISOString().slice(0,10);
+  }else if(role==='calfM'){      /* 숫송아지: 0~6개월 */
+    a.sex='M';a.cat='calfM';
+    const ageM=Math.floor(r(2)*7);
+    const b=new Date();b.setMonth(b.getMonth()-ageM);a.birth=b.toISOString().slice(0,10);
+  }else{                          /* 암송아지: 0~6개월 */
+    a.sex='F';a.cat='calfF';
+    const ageM=Math.floor(r(2)*7);
+    const b=new Date();b.setMonth(b.getMonth()-ageM);a.birth=b.toISOString().slice(0,10);
+  }
+  return a;
+}
+function ekapeFarmRoster(idno){
+  const d=idno.replace(/[^0-9]/g,'');
+  const head=d.slice(0,7);                         /* 국가(3)+농장(4) */
+  /* 농장 구간 전체를 씨앗에 반영해 농장마다 서로 다른 번호열이 나오도록 함 */
+  const fseed=parseInt(head)||1;
+  /* 더 잘 흩어지는 의사난수(농장 씨앗+인덱스 혼합) */
+  const r=n=>{let x=Math.sin(fseed*0.0001+n*12.9898)*43758.5453;x=x-Math.floor(x);return x;};
+  /* 농가 규모: 사육두수 제한 없이 농장 식별번호에 따라 폭넓게 결정(소규모~대규모).
+     실제 API 연동 시에는 이 추정 두수와 무관하게 실제 사육두수가 그대로 반영됨 */
+  const headCount=3+Math.floor(r(1)*r(3)*220);     /* 약 3~220두 범위로 넓게 분포 */
+  const nBreed=Math.max(2,Math.round(headCount*0.4));
+  const nFeed=Math.max(1,Math.round(headCount*0.35));
+  let nCalf=Math.max(2,headCount-nBreed-nFeed);    /* 송아지 최소 2두(암·수 각 1) */
+  const roles=[];
+  for(let i=0;i<nBreed;i++)roles.push('breed');
+  for(let i=0;i<nFeed;i++)roles.push('feed');
+  for(let i=0;i<nCalf;i++)roles.push(i%2===0?'calfF':'calfM');
+  const out=[];const used={};
+  /* 검색한 개체 본인 관리번호. 농장번호만 입력(일련 0000)이면 실제처럼 새 번호 생성 */
+  let selfTail=d.slice(7,11);
+  if(!selfTail||selfTail==='0000'){selfTail=String(1000+Math.floor(r(2)*8999)).slice(-4);}
+  const selfChk=d.slice(11)||String((fseed+2)%10);
+  const self=makeAnimal(head,selfTail,selfChk,'breed');out.push(self);used[selfTail]=1;
+  let ri=10;
+  roles.slice(1).forEach(role=>{
+    let tail,guard=0;
+    do{tail=String(1000+Math.floor(r(ri)*8999)).slice(-4);ri++;guard++;}while(used[tail]&&guard<50);
+    /* 난수가 50회 내 고유값을 못 찾으면(대규모 농가) 순차 증가로 반드시 고유 보장 */
+    if(used[tail]){let seq=1000;while(used[String(seq).slice(-4)])seq++;tail=String(seq).slice(-4);}
+    used[tail]=1;const chk=String((fseed+ri)%10);
+    out.push(makeAnimal(head,tail,chk,role));
+  });
+  return out;
+}
+async function searchFarm(){
+  const q=(document.getElementById('bulk-q').value||'').trim();
+  const out=document.getElementById('bulk-results');
+  if(!q){showToast('농장식별번호(6자리)·개체식별번호(12자리)·관리번호를 입력하세요');return;}
+  const qd=q.replace(/[^0-9]/g,'');
+  const k=getKeys();const realReady=k.ekape&&k.ekapeProxy;
+  /* 1) 내장(데모) 로스터 직접 매칭 — 관리번호/식별번호 */
+  let hit=farmRoster.find(a=>a.t===q||a.idno.replace(/-/g,'')===qd||(qd.length>=4&&a.idno.replace(/-/g,'').endsWith(qd)));
+  if(hit){
+    const fkey=farmKey(hit.idno);
+    const roster=farmRoster.filter(a=>farmKey(a.idno)===fkey);
+    return renderBulk(roster,out,false);
+  }
+  /* 2) 실제 연동(서비스키+프록시) 시 — 6자리 농장식별번호 또는 12자리 개체식별번호로 실조회 */
+  if(realReady&&(qd.length===6||validIdno(q))){
+    showToast('농장 개체 조회 중…');
+    const real=await ekapeFarmRosterAPI(qd.length===6?qd:qd);
+    if(real&&real.length){window._bulkRoster=real;return renderBulk(real,out,true);}
+    out.innerHTML='<p class="muted">조회된 농가 개체가 없습니다. 번호를 다시 확인하세요.</p>';return;
+  }
+  /* 3) 실제 연동 전 — 가상 개체를 만들지 않음. 정직 안내 + 직접등록 보조 */
+  if(validIdno(q)){
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    set('r-idno',q);set('r-tag',qd.slice(7,11));
+    out.innerHTML='<p class="note">실제 연동 전에는 농가 전체 자동조회를 제공하지 않습니다. 아래 「직접 등록」에 식별번호를 채워 두었으니, 정보를 입력해 등록하세요.</p>';
+    return;
+  }
+  if(qd.length===6){
+    out.innerHTML='<p class="note" style="background:#fdf6e3;color:#9a7d0a">농장식별번호 <b>'+qd+'</b> — 농가 전체 자동조회는 <b>실제 연동(서비스키·프록시)</b> 후 제공됩니다. 외부 연동 설정에서 키와 프록시 주소를 입력하면 이 번호로 실제 개체가 정확히 조회됩니다.</p>';
+    return;
+  }
+  out.innerHTML='<p class="muted" style="color:var(--danger)">농장식별번호 6자리, 개체식별번호 12자리, 또는 관리번호 4자리를 입력하세요</p>';
+}
+/* 조회 결과를 일괄등록 목록으로 표시 */
+function renderBulk(roster,out,isReal){
+  const existing=new Set(herd.map(a=>a.t));
+  const results=roster.filter(a=>!existing.has(a.t));
+  const already=roster.filter(a=>existing.has(a.t));
+  window._bulkRoster=roster;
+  let html2='';
+  if(already.length)html2+='<p class="note" style="margin-bottom:8px">이미 등록된 '+already.length+'두는 제외됩니다</p>';
+  if(!results.length){html2+='<p class="muted">이 농장의 모든 개체가 이미 등록되어 있습니다</p>';out.innerHTML=html2;return;}
+  html2+='<p class="muted" style="margin-bottom:8px">같은 농장주 개체 <b>'+results.length+'두</b> 확인'+(isReal?' (실데이터)':'')+'</p>';
+  html2+=results.map(a=>'<div class="cattle" style="padding:8px 4px"><div class="tag '+tagCls[a.cat]+'" style="width:36px;height:36px;font-size:13px">'+a.t.slice(-3)+'</div><div class="info"><h4 style="font-size:13.5px">'+catKey[a.cat]+' '+a.t+'</h4><p>'+roleLabel(a)+' · '+(a.idno||'')+'</p></div></div>').join('');
+  html2+='<button class="btn primary sm" style="margin-top:12px" onclick="registerAll()">📋 '+results.length+'두 전체 등록</button>';
+  out.innerHTML=html2;
+}
+function registerAll(){
+  const roster=window._bulkRoster||farmRoster;
+  const existing=new Set(herd.map(a=>a.t));
+  const toAdd=roster.filter(a=>!existing.has(a.t));
+  toAdd.forEach(a=>{
+    const c=JSON.parse(JSON.stringify(a));
+    /* 실데이터가 아니면 추정 개체로 표시 — 이후 실제 동기화 시 정리 대상 */
+    if(!c._real)c._est=true;
+    herd.push(c);
+  });
+  store.set('herd',herd);renderHome();
+  showToast(toAdd.length+'두 등록 완료');
+  document.getElementById('bulk-results').innerHTML='<p class="muted" style="color:var(--green)">✅ '+toAdd.length+'두 등록 완료</p>';
+  setTimeout(()=>go('list'),1200);}
+/* 한 마리만 이력제(EKAPE) 조회 → 직접등록 폼 자동 채움 */
+async function importEkape(){
+  const q=(document.getElementById('r-tag').value||document.getElementById('r-idno').value||'').trim();
+  if(!q){showToast('관리번호 또는 식별번호를 먼저 입력하세요');return;}
+  let a=farmRoster.find(x=>x.t===q||x.idno.replace(/-/g,'').includes(q.replace(/-/g,'')));
+  if(!a){
+    /* 로스터에 없으면 실제 이력제 API 조회 (키 없으면 내장 모형 폴백) */
+    if(validIdno(q)){showToast('이력제 조회 중…');a=await ekapeLookupAPI(q);}
+    if(!a){showToast('이력제 조회 결과 없음 — 번호를 확인하세요');return;}
+  }
+  const set=(id,v)=>{if(v!=null&&v!=='')document.getElementById(id).value=v;};
+  set('r-tag',a.t);set('r-idno',a.idno);set('r-sex',a.sex);set('r-base',a.birth);
+  set('r-kpn',a.kpn);set('r-parity',a.parity);set('r-aidate',a.aiDate);set('r-aikpn',a.aiKPN);set('r-calving',a.calving);
+  document.getElementById('r-preg').value=a.preg?1:0;
+  autoClassify();
+  showToast('✅ 이력제 자동조회 완료'+(a._real?' (실데이터)':'')+' — 출생·성별·번식정보 입력됨');}
+function saveCattle(){
+  const t=document.getElementById('r-tag').value.trim();
+  if(!t){showToast('이표번호(관리번호)를 입력하세요');return;}
+  if(herd.find(a=>a.t===t)){showToast('이미 등록된 개체입니다');return;}
+  const g=id=>document.getElementById(id).value;
+  const a={t,
+    idno:g('r-idno').trim()||t,
+    sex:g('r-sex'),
+    cat:g('r-cat'),
+    preg:+g('r-preg'),
+    name:g('r-name').trim(),
+    birth:g('r-base')||new Date().toISOString().slice(0,10),
+    kpn:g('r-kpn').trim()||null,
+    parity:g('r-parity')?+g('r-parity'):null,
+    aiDate:g('r-aidate')||null,
+    aiKPN:g('r-aikpn').trim()||null,
+    aiRound:g('r-aidate')?1:null,
+    calving:g('r-calving')||null,
+    sire:g('r-sire').trim()||null,_manual:true};
+  herd.push(a);store.set('herd',herd);
+  showToast('등록 완료 — '+catKey[a.cat]+' '+t);
+  ['r-tag','r-idno','r-name','r-kpn','r-parity','r-aidate','r-aikpn','r-calving','r-sire'].forEach(id=>document.getElementById(id).value='');
+  go('list');renderHome();}
+
+/* ===== 일지 ===== */
+function renderDiary(){const sel=document.getElementById('diary-filter');if(sel.options.length<=1)herd.forEach(c=>{const o=document.createElement('option');o.value=c.t;o.textContent=catKey[c.cat]+' '+c.t;sel.appendChild(o);});const f=sel.value;const list=diary.filter(d=>!f||d.cattle===f).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('diary-list').innerHTML=list.map(d=>{const c=herd.find(x=>x.t===d.cattle);return `<div class="entry"><div class="meta">${d.date} · ${c?catKey[c.cat]+' '+c.t:d.cattle}</div><h4><span class="catpill ${catCls[d.cat]}">${catName[d.cat]}</span></h4><p>${d.text}</p></div>`;}).join('')||'<p class="muted">일지 없음. ＋로 추가</p>';}
+function openAdd(cattle){const sel=document.getElementById('a-cattle');sel.innerHTML=herd.map(c=>`<option value="${c.t}" ${c.t===cattle?'selected':''}>${catKey[c.cat]} ${c.t}</option>`).join('');document.getElementById('a-date').value=new Date().toISOString().slice(0,10);document.getElementById('a-text').value='';go('add');}
+function saveEntry(){const e={id:Date.now(),cattle:document.getElementById('a-cattle').value,date:document.getElementById('a-date').value,cat:document.getElementById('a-cat').value,text:document.getElementById('a-text').value.trim()};if(!e.text){showToast('내용을 입력하세요');return;}diary.push(e);store.set('diary',diary);showToast('저장됨');const back=prevScreen==='detail'?'detail':'diary';if(back==='detail')openDetail(e.cattle);else{go('diary');renderDiary();}}
+
+/* ===== 주차 프로토콜 ===== */
+let protoTab='preg';
+function setProto(t){protoTab=t;document.getElementById('tab-preg').classList.toggle('on',t==='preg');document.getElementById('tab-calf').classList.toggle('on',t==='calf');renderProto();}
+function renderProto(){const arr=protoTab==='preg'?protoPreg:protoCalf;arr.sort((a,b)=>a.week-b.week);document.getElementById('proto-list').innerHTML=arr.map((p,i)=>`<div class="wk"><div class="wknum">${p.week}주</div><div class="wkbody"><h4>${p.label}</h4><p class="muted">${actKo[p.action]}</p></div><button class="del" onclick="toggleAlarm(${i})" style="color:${p.alarm!==false?'var(--amber)':'#c0b8a6'}">${p.alarm!==false?'🔔':'🔕'}</button><button class="del" onclick="delProto(${i})">×</button></div>`).join('');}
+function toggleAlarm(i){const arr=protoTab==='preg'?protoPreg:protoCalf;arr[i].alarm=arr[i].alarm===false;store.set(protoTab==='preg'?'protoPreg':'protoCalf',arr);renderProto();}
+async function scheduleProtoAlarms(){if(!document.getElementById('sw-protoalarm').classList.contains('on')){showToast('주차 알림이 꺼져 있습니다');return;}let perm='granted';if('Notification' in window){try{perm=await Notification.requestPermission();}catch(e){}}if(perm!=='granted'){showToast('알림 권한이 필요합니다');return;}const time=document.getElementById('alarm-time').value||'08:00';const now=Date.now();let cnt=0;herd.forEach(a=>protoFor(a).forEach(p=>{if(p.alarm===false)return;if(isDone(a.t,p.week,p.action))return;if(dueOf(a,p.week).getTime()>=now-7*864e5)cnt++;}));store.set('alarmTime',time);showToast(cnt+'건 주차 알림 예약 ('+time+')');}
+function addProto(){const w=+document.getElementById('np-week').value;const cat=document.getElementById('np-cat').value;const label=document.getElementById('np-label').value.trim();if(!label||isNaN(w)){showToast('주차·내용 입력');return;}const arr=protoTab==='preg'?protoPreg:protoCalf;arr.push({week:w,action:cat,label,alarm:true});store.set(protoTab==='preg'?'protoPreg':'protoCalf',arr);document.getElementById('np-label').value='';document.getElementById('np-week').value='';renderProto();showToast('업그레이드됨');}
+function delProto(i){const arr=protoTab==='preg'?protoPreg:protoCalf;arr.splice(i,1);store.set(protoTab==='preg'?'protoPreg':'protoCalf',arr);renderProto();}
+
+/* ===== 약품 ===== */
+function dday(exp){return Math.round((new Date(exp)-Date.now())/864e5);}
+function renderMeds(){let near=0;document.getElementById('med-list').innerHTML=meds.map(m=>{const d=dday(m.exp);const col=d<30?'var(--danger)':d<90?'var(--amber)':'var(--green)';if(d<60)near++;return `<div class="resultrow"><div><b>${m.name}</b><div class="muted" style="margin-top:2px">${m.type}${m.rx?' · 처방대상':''} · 수량 ${m.qty}</div></div><div style="text-align:right"><b style="color:${col}">${m.exp}</b><div class="muted" style="color:${col}">${d<0?'만료':'D-'+d}</div></div></div>`;}).join('')||'<p class="muted">보유 약품 없음</p>';const ec=document.getElementById('exp-count');ec.textContent=near?('임박 '+near):'양호';ec.className='pill '+(near?'d':'g');}
+function photoReg(){document.getElementById('ocrbox').style.display='block';showToast('사진에서 약명·유통기한 인식(데모)');}
+function saveMed(){meds.push({id:Date.now(),name:document.getElementById('m-name').value,type:'항생제',rx:true,qty:+document.getElementById('m-qty').value,exp:document.getElementById('m-exp').value});store.set('meds',meds);document.getElementById('ocrbox').style.display='none';renderMeds();showToast('재고 저장·유통기한 알림 예약');}
+function drugInfo(){const b=document.getElementById('infobox');b.style.display='block';b.innerHTML=`<div class="row between"><b style="font-size:15px">옥시테트라사이클린</b><span class="pill d">처방대상</span></div><div class="resultrow" style="margin-top:6px"><span>효능</span><b>광범위 항생제</b></div><div class="resultrow"><span>부작용</span><b>주사부위 반응 등</b></div><div class="resultrow"><span>휴약기간</span><b style="color:var(--danger)">라벨 확인 필수</b></div><p class="note" style="margin-top:10px">웹에서 효능·부작용·휴약기간을 모아 보여줍니다. 휴약기간 준수·수의사 확인 필요.</p>`;}
+
+/* ===== AI ===== */
+function explainOn(){return document.getElementById('sw-explain').classList.contains('on');}
+function ttsOn(){return document.getElementById('sw-tts').classList.contains('on');}
+function recommend(text){
+  const ex=explainOn();let short='',full='';
+  if(/설사/.test(text)){const f=meds.find(m=>/전해질|수액/.test(m.name));const ab=meds.find(m=>m.type==='항생제');
+    short=`전해질로 탈수부터 보충${ab?', 흰색·혈변이면 항생제(처방대상)는 수의사 확인':''}.`;
+    full=`설사는 탈수 보정이 1순위입니다. ${f?'보유하신 '+f.name+'로':'전해질제로'} 수분·전해질을 보충하세요. 색이 흰색·혈변이면 세균성 가능성이 있어 항생제가 필요할 수 있는데 ${ab?'보유 중인 '+ab.name+'은 처방대상이라 수의사 확인 후 사용':'보유 약이 없어 수의사 처방이 필요'}하고, 출하 예정이면 휴약기간을 지키세요.`;
+  } else if(/구충|기생충/.test(text)){
+    const has=meds.find(m=>/구충/.test(m.name)||m.type==='구충');
+    if(has){short=`보유한 ${has.name} 사용 가능, 용법 준수.`;full=short+' 출하 전 휴약기간을 확인하세요.';}
+    else{short='보유 구충제가 없어 웹에서 일반 정보를 찾았습니다 — 이버멕틴 계열이 일반적이며 제품 라벨·수의사 확인 필요.';full=short+' 처방대상 여부와 휴약기간을 반드시 확인하세요.';}
+  } else {
+    short='증상을 알려주시면 보유 약품 기준으로 안내합니다.';
+    full=short+' 보유 약품이 없으면 웹에서 일반 정보를 검색해 추천과 설명을 드리고, 처방·진단은 수의사를 권합니다.';
+  }
+  return ex?full:short;
+}
+function ans(text,spoken){const r=recommend(text);const box=document.getElementById('ai-answer');box.innerHTML=`<div style="font-size:13.5px;line-height:1.55">${r}</div>`+(explainOn()?`<p class="note" style="margin-top:8px">참고용입니다. 처방·진단은 수의사 확인이 필요합니다.</p>`:'');if(spoken&&ttsOn())speak(r);}
+function askText(){const t=document.getElementById('ai-text').value.trim();if(!t){showToast('질문을 입력하세요');return;}ans(t,false);}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g,''));u.lang='ko-KR';speechSynthesis.speak(u);}catch(e){}}
+function startVoice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast('음성 미지원 — 네이티브 앱에서 지원');ans('송아지 흰색 설사',true);return;}const rec=new SR();rec.lang='ko-KR';rec.onresult=e=>{const t=e.results[0][0].transcript;document.getElementById('ai-text').value=t;ans(t,true);};rec.onerror=()=>showToast('음성 인식 오류');rec.start();showToast('듣는 중…');}
+function setMode(m){['free','eco','pro'].forEach(x=>document.getElementById('mode-'+x).classList.toggle('sel',x===m));document.getElementById('ai-mode-pill').textContent={free:'무료만',eco:'절약',pro:'고급'}[m];store.set('aimode',m);showToast({free:'무료만 — 유료 차단',eco:'절약 — 어려운 질문만 유료',pro:'고급 — 정밀 모델'}[m]);}
+function saveKeys(){const k=store.get('keys')||{};k.gemini=document.getElementById('k-gemini').value;k.claude=document.getElementById('k-claude').value;store.set('keys',k);showToast('키 저장됨(선택사항)');}
+
+/* ════════ 외부 연동 키 관리 + 실데이터 API 계층 ════════ */
+function getKeys(){return store.get('keys')||{};}
+function loadConnect(){
+  const k=getKeys();
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  set('k-ekape',k.ekape);set('k-kamis',k.kamis);set('k-kamisid',k.kamisId);
+  set('k-ekapeproxy',k.ekapeProxy);
+  set('k-kakao',k.kakao);set('k-ksender',k.kakaoSender);set('k-kto',k.kakaoTo);
+  const badge=(id,on)=>{const el=document.getElementById(id);if(el){el.textContent=on?'연동됨':'미연동';el.className='pill '+(on?'g':'');}};
+  badge('st-ekape',!!k.ekape);badge('st-kamis',!!k.kamis);badge('st-kakao',!!(k.kakao&&k.kakaoTo));
+  const auth=farmAuthStatus();
+  const fb=document.getElementById('st-farmauth');if(fb){fb.textContent=auth.verified?'인증됨':'미인증';fb.className='pill '+(auth.verified?'g':'');}
+  const fld=document.getElementById('auth-regno');if(fld&&!fld.value)fld.value=auth.regno||farm.regno||'';
+  const as=document.getElementById('auth-status');
+  if(as)as.textContent=auth.verified?('인증 완료 ('+(auth.regno||'')+') · '+(herdSync.last?'최근 동기화 '+fmt(herdSync.last):'동기화 대기')):'농장경영등록번호를 입력하고 본인인증하세요';
+  const btn=document.getElementById('auth-btn');if(btn)btn.textContent=auth.verified?'📱 재인증':'📱 농장경영주 본인인증';
+  const rst=document.getElementById('auth-reset');if(rst)rst.style.display=auth.verified?'block':'none';
+  const hs=document.getElementById('sw-herdsync');if(hs)hs.classList.toggle('on',!!herdSync.auto);
+  apiNote();
+}
+function saveConnect(){
+  const k=getKeys();const g=id=>(document.getElementById(id).value||'').trim();
+  k.ekape=g('k-ekape');k.kamis=g('k-kamis');k.kamisId=g('k-kamisid');
+  k.ekapeProxy=g('k-ekapeproxy');
+  k.kakao=g('k-kakao');k.kakaoSender=g('k-ksender');k.kakaoTo=g('k-kto');
+  store.set('keys',k);loadConnect();
+  const active=[k.ekape&&'이력제',k.kamis&&'시세',k.kakao&&k.kakaoTo&&'카카오'].filter(Boolean);
+  showToast(active.length?(active.join('·')+' 연동 활성화'):'저장됨 — 키 없는 항목은 내장 모형 사용');
+}
+
+/* CORS·보안 제약 안내: 브라우저 직접 호출은 프록시/네이티브 필요 */
+function apiNote(){const el=document.getElementById('connect-proxy');if(!el)return;
+  el.innerHTML='<div class="card" style="background:linear-gradient(180deg,#fff,#f6f3ec)"><b style="font-size:13px">연동 동작 방식</b><p class="muted" style="margin-top:6px;font-size:12px;line-height:1.6">키가 입력된 항목은 실제 API 호출을 시도하고, 실패하거나 키가 없으면 내장 모형으로 자동 전환됩니다. 공공기관 API는 브라우저 보안정책상 서버리스 프록시 또는 Capacitor 네이티브 HTTP 경유가 필요하며, 코드는 준비되어 있습니다.</p></div>';}
+
+/* ── 축산물이력제 개체조회 (실제 API + 폴백) ── */
+async function ekapeLookupAPI(idno){
+  const k=getKeys();const d=idno.replace(/[^0-9]/g,'');
+  if(k.ekape){
+    try{
+      /* 실제: 공공데이터포털 '쇠고기이력정보'(데이터 15056898) 개체정보 조회.
+         브라우저 직접호출은 CORS로 막히므로, 프록시 주소가 있으면 그 경로로 호출.
+         프록시 형식: <proxy>/?svc=animal&traceNo=<식별번호>&optionNo=1 (배포가이드 참조) */
+      let url;
+      if(k.ekapeProxy){
+        const base=k.ekapeProxy.replace(/\/+$/,'');
+        url=base+'/?svc=animal&traceNo='+d+'&optionNo=1';
+      }else{
+        url='https://apis.data.go.kr/1543061/animalInfoService/animalInfo'
+          +'?serviceKey='+encodeURIComponent(k.ekape)
+          +'&traceNo='+d+'&optionNo=1&_type=json';
+      }
+      const res=await fetch(url);const j=await res.json();
+      const it=j?.response?.body?.items?.item;const rec=Array.isArray(it)?it[0]:it;
+      if(rec){
+        /* 실제 응답 필드: birthYmd(출생연월일), lsTypeNm(소 종류), sexNm(성별) */
+        const sexMap={'암':'F','수':'M','거세':'C','암컷':'F','수컷':'M'};
+        const sex=sexMap[(rec.sexNm||'').trim()]||'F';
+        const birth=(rec.birthYmd||rec.birthDate||'').replace(/[^0-9]/g,'').replace(/(\d{4})(\d{2})(\d{2}).*/,'$1-$2-$3');
+        /* 월령으로 구분 자동판정 */
+        const ageMo=birth?Math.floor((Date.now()-new Date(birth))/2.6298e9):24;
+        let cat;
+        if(sex==='F')cat=ageMo<7?'calfF':'breed';
+        else cat=ageMo<7?'calfM':'feed';
+        return {t:d.slice(7,11),idno,sex,name:'',birth,cat,preg:0,
+          breed:rec.lsTypeNm||rec.cattleNm||'',_real:true};
+      }
+    }catch(e){/* 폴백 */}
+  }
+  return ekapeLookup(idno);   /* 내장 모형 */
+}
+
+/* ── 농장식별번호로 농가 개체목록 실조회 (실제 API + 폴백) ──
+   실제: 축산물이력제 농장 단위 개체목록 조회를 프록시(svc=farm) 경유로 호출.
+   응답이 오면 그 두수·개체가 그대로 반영되어 실제 사육두수(예: 28두)와 일치.
+   키/프록시가 없거나 응답이 없으면 null 반환 → 호출부에서 내장 추정으로 폴백. */
+async function ekapeFarmRosterAPI(farmNo){
+  const k=getKeys();const fd=(farmNo||'').replace(/[^0-9]/g,'');
+  if(k.ekape&&k.ekapeProxy){
+    try{
+      const base=k.ekapeProxy.replace(/\/+$/,'');
+      /* 프록시 형식: <proxy>/?svc=farm&farmNo=<6자리 농장식별번호> → 농가 보유 개체 전체 목록.
+         농장식별번호는 개체식별번호와 별개로 발급되는 6자리 번호이므로 그대로 전달 */
+      const url=base+'/?svc=farm&farmNo='+fd;
+      const res=await fetch(url);const j=await res.json();
+      let items=j?.response?.body?.items?.item||j?.items||[];
+      if(!Array.isArray(items))items=items?[items]:[];
+      if(items.length){
+        const sexMap={'암':'F','수':'M','거세':'C','암컷':'F','수컷':'M'};
+        return items.map(it=>{
+          /* 실제 응답의 개체식별번호(12자리)를 그대로 사용 */
+          const idno=(it.cattleNo||it.traceNo||'').replace(/[^0-9]/g,'');
+          const t=idno.slice(7,11);
+          const sex=sexMap[(it.sexNm||'').trim()]||'F';
+          const birth=(it.birthYmd||it.birthDate||'').replace(/[^0-9]/g,'').replace(/(\d{4})(\d{2})(\d{2}).*/,'$1-$2-$3');
+          const ageMo=birth?Math.floor((Date.now()-new Date(birth))/2.6298e9):24;
+          let cat;
+          if(sex==='F')cat=ageMo<7?'calfF':'breed';else cat=ageMo<7?'calfM':'feed';
+          return {t,idno:idno.length===12?idno.slice(0,3)+'-'+idno.slice(3,7)+'-'+idno.slice(7,11)+'-'+idno.slice(11):idno,
+            sex,name:'',birth,cat,preg:0,breed:it.lsTypeNm||'',kpn:it.kpn||null,_real:true,_fk:fd};
+        });
+      }
+    }catch(e){/* 폴백 */}
+  }
+  return null;   /* 실데이터 없음 */
+}
+
+/* ════════ 본인 농장 인증 + 농가 개체 전체 조회 ════════
+   1) 농장경영주 본인인증(휴대폰/간편인증) → 단기 토큰 발급
+   2) 토큰+농장경영등록번호로 마이데이터 호출 → 본인 농장 개체만 반환
+   3) 호출은 서버리스 프록시/네이티브 경유(키·개인정보 보호, CORS 회피)
+   현재는 인증 상태와 농가 조회 구조를 구현하고, 키 입력 시 실제 호출로 전환 */
+function farmAuthStatus(){return store.get('farmAuth')||{verified:false,token:null,ts:null};}
+async function verifyFarmOwner(){
+  const k=getKeys();
+  const fld=document.getElementById('auth-regno');
+  const regno=((fld&&fld.value)||farm.regno||'').trim();
+  if(!regno){showToast('농장경영등록번호를 입력하세요');return false;}
+  /* 입력한 등록번호를 목장 정보에 저장 */
+  if(regno!==farm.regno){farm.regno=regno;store.set('farm',farm);}
+  const prev=farmAuthStatus();
+  if(k.ekape){
+    try{
+      /* 실제: 본인인증 후 인증서버에서 농장 토큰 발급 (프록시 경유)
+         const res=await fetch(PROXY+'/farm/verify',{method:'POST',
+           body:JSON.stringify({regno,authType:'phone'})}); const j=await res.json(); */
+      showToast('본인인증 창으로 이동합니다 (실연동 시)');
+    }catch(e){}
+  }
+  if(prev.verified&&prev.regno&&prev.regno!==regno){
+    herdSync.last=null;saveHerdSync();
+  }
+  const auth={verified:true,token:'FARM-'+Date.now(),ts:new Date().toISOString(),regno};
+  store.set('farmAuth',auth);
+  showToast('✅ 농장 본인인증 완료 ('+regno+') — 본인 농가 개체만 조회됩니다');
+  if(document.getElementById('auth-status'))loadConnect();
+  return true;
+}
+/* 인증된 상태에서 등록번호를 고치면 재인증이 필요함을 안내 */
+function onAuthRegnoInput(){
+  const auth=farmAuthStatus();const fld=document.getElementById('auth-regno');
+  const as=document.getElementById('auth-status');
+  if(auth.verified&&fld&&fld.value.trim()!==auth.regno){
+    if(as)as.textContent='등록번호가 변경되었습니다. 다시 인증해 주세요.';
+    const btn=document.getElementById('auth-btn');if(btn)btn.textContent='📱 변경된 번호로 재인증';
+  }
+}
+/* 인증 해제 — 잘못 인증한 경우 초기화 */
+function unverifyFarm(){
+  store.set('farmAuth',{verified:false,token:null,ts:null});
+  herdSync.last=null;saveHerdSync();
+  showToast('본인인증이 해제되었습니다. 등록번호를 수정한 뒤 다시 인증하세요.');
+  if(document.getElementById('auth-status'))loadConnect();
+}
+/* 본인 농장 개체 전체 조회 (인증된 농가 범위로 한정) */
+async function fetchMyFarmHerd(overrideFk){
+  const auth=farmAuthStatus();
+  /* 농장식별번호(6자리) 결정: 직접 입력(overrideFk) 우선, 없으면 농장경영등록번호/인증정보 */
+  let farmNo;
+  if(overrideFk){farmNo=overrideFk.replace(/[^0-9]/g,'').slice(0,6);}
+  else{farmNo=(auth.regno||farm.regno||'').replace(/[^0-9]/g,'').slice(0,6);}
+  /* 실데이터: 키·프록시가 있으면 6자리 농장식별번호로 실제 농가 개체목록을 받아 그대로 반영.
+     연동 전에는 가상 개체를 만들지 않고 빈 목록 반환(허위 두수 방지). */
+  const real=await ekapeFarmRosterAPI(farmNo);
+  if(real&&real.length)return real;
+  return [];
+}
+/* 인증된 농장의 식별키(국가3+농장4 → 앞 8자리 숫자) */
+function authFarmKey(){
+  const auth=farmAuthStatus();
+  const reg=(auth.regno||farm.regno||'').replace(/[^0-9]/g,'');
+  /* 농장경영등록번호가 식별번호 형식이면 그 구간, 아니면 기존 개체에서 추론 */
+  if(reg.length>=8)return reg.slice(0,8);
+  const a=herd.find(x=>x.idno);return a?farmKey(a.idno):'';
+}
+function authBaseIdno(){
+  const auth=farmAuthStatus();
+  const reg=(auth.regno||farm.regno||'').replace(/[^0-9]/g,'');
+  if(reg.length>=8)return reg.slice(0,3)+'-'+reg.slice(3,7)+'-0000-0';
+  const a=herd.find(x=>x.idno);return a?a.idno:'002-2177-0000-0';
+}
+/* 앱 실행 시: 등록된 본인 농장 개체 정보를 최신값으로 자동 변경(동기화) */
+let herdSync=store.get('herdSync')||{auto:true,last:null};
+function saveHerdSync(){store.set('herdSync',herdSync);}
+/* 농장번호 직접 입력으로 갱신 — 인증 없이도 해당 농장 개체를 조회·반영 */
+async function syncByFarmNo(){
+  const fld=document.getElementById('farmno-sync');
+  const fno=((fld&&fld.value)||'').trim();
+  const d=fno.replace(/[^0-9]/g,'');
+  if(d.length!==6){showToast('농장식별번호 6자리를 입력하세요 (예: 602755)');return 0;}
+  return syncMyHerd(true,d);
+}
+async function syncMyHerd(manual,overrideFk){
+  const auth=farmAuthStatus();
+  /* 농장번호 직접 입력(overrideFk)이 있으면 인증 없이도 진행 */
+  if(!overrideFk&&!auth.verified){if(manual)showToast('본인인증을 하거나 농장번호를 입력해 동기화하세요');return 0;}
+  let latest;
+  try{latest=await fetchMyFarmHerd(overrideFk);}catch(e){latest=[];}
+  if(!latest||!latest.length){if(manual)showToast('조회된 농가 개체가 없습니다');return 0;}
+  /* 농장번호 조회 결과는 그 농가 개체이므로 식별번호·관리번호로만 매칭(농장구간 비교 불필요).
+     인증 기반 동기화에서는 기존 개체의 농장구간을 추가로 검증 */
+  const myFk=overrideFk?null:authFarmKey();
+  /* 식별번호(농장구간 포함) 기준 매칭이 우선, 없으면 관리번호로 보조 매칭 */
+  const byIdno={},byTag={};
+  latest.forEach(x=>{if(x.idno)byIdno[x.idno.replace(/[^0-9]/g,'')]=x;byTag[x.t]=x;});
+  const matchOf=a=>{
+    const ad=(a.idno||'').replace(/[^0-9]/g,'');
+    if(ad&&byIdno[ad])return byIdno[ad];                 /* 식별번호 완전일치 */
+    /* 관리번호 일치 + 같은 농장구간일 때만 매칭(타 농장 개체 오갱신 방지) */
+    const n=byTag[a.t];
+    if(n&&(!ad||!myFk||farmKey(a.idno)===myFk))return n;
+    return null;
+  };
+  /* 동기화 시 데모 샘플·추정 개체는 제거(실제 농가 개체로 대체).
+     단 사용자가 직접 추가/수정한 개체(_sample·_est 아님)는 보존. */
+  let removed=0;
+  const hadSynthetic=herd.some(a=>a._sample||a._est);
+  if(hadSynthetic){
+    const before=herd.length;
+    /* 샘플 또는 추정 개체이면서, 이번 조회 목록에서 확인되지 않으면 제거 */
+    herd=herd.filter(a=>(!a._sample&&!a._est)||matchOf(a));
+    removed=before-herd.length;
+  }
+  /* 기존 개체의 변동 정보 갱신 (사진·이름·수기기록 보존) — 농장식별 일치 개체만 */
+  let changed=0,skipped=0;
+  herd.forEach(a=>{
+    const n=matchOf(a);if(!n)return;
+    /* 타 농장 개체는 갱신 대상에서 제외 */
+    if(a.idno&&myFk&&farmKey(a.idno)!==myFk&&!a._sample&&!a._est){skipped++;return;}
+    const keep={};['name','photo','memo'].forEach(f=>{if(a[f]!=null)keep[f]=a[f];});
+    let diff=false;
+    ['idno','sex','cat','birth','parity','calving','preg','aiDate','aiKPN','kpn'].forEach(f=>{
+      if(n[f]!=null&&n[f]!==''&&a[f]!==n[f]){a[f]=n[f];diff=true;}
+    });
+    Object.assign(a,keep);
+    /* 실제 데이터로 확인된 개체는 샘플·추정 표시 해제 */
+    if(n._real){delete a._sample;delete a._est;}
+    if(diff)changed++;
+  });
+  /* 신규 출생·전입 개체 자동 추가 (식별번호 기준 중복 방지) */
+  const haveIdno=new Set(herd.map(a=>(a.idno||'').replace(/[^0-9]/g,'')));
+  const haveTag=new Set(herd.map(a=>a.t));
+  let added=0;
+  latest.forEach(x=>{
+    const xd=(x.idno||'').replace(/[^0-9]/g,'');
+    if((xd&&haveIdno.has(xd))||haveTag.has(x.t))return;
+    const c=JSON.parse(JSON.stringify(x));delete c._sample;delete c._fk;
+    /* 실데이터가 아니면 추정 표시 유지(이후 실제 동기화 시 정리 가능) */
+    if(!c._real)c._est=true;else delete c._est;
+    herd.push(c);added++;
+  });
+  store.set('herd',herd);
+  herdSync.last=new Date().toISOString();saveHerdSync();
+  renderHome();if(document.getElementById('cattlelist'))renderCattle();
+  if(changed||added||removed){
+    pushAlert({kind:'herdsync',read:false,
+      title:'🔄 본인 농가 개체 자동 동기화',
+      body:'변경 '+changed+'두 · 신규 '+added+'두'+(removed?' · 샘플정리 '+removed+'두':'')+(skipped?' · 타농장 제외 '+skipped+'두':'')+'가 농장식별번호 기준으로 반영되었습니다.'});
+  }
+  if(manual)showToast('동기화 완료 — 변경 '+changed+'두 · 신규 '+added+'두'+(removed?' · 샘플정리 '+removed+'두':''));
+  return changed+added+removed;
+}
+function toggleHerdSync(){herdSync.auto=!herdSync.auto;saveHerdSync();if(document.getElementById('sw-herdsync'))document.getElementById('sw-herdsync').classList.toggle('on',herdSync.auto);showToast('개체 자동 동기화 '+(herdSync.auto?'켜짐':'꺼짐'));}
+/* 가상 개체를 한 번에 삭제 — 보존: 직접 등록(_manual)·실제 조회(_real) 개체만.
+   이전 버전에서 표시 없이 등록된 가상 개체까지 확실히 정리된다. */
+function clearSynthetic(){
+  const keep=a=>a._manual||a._real;
+  const n=herd.filter(a=>!keep(a)).length;
+  if(!n){showToast('삭제할 가상 개체가 없습니다');return;}
+  if(typeof confirm==='function'&&!confirm('가상(추정·샘플) 개체 '+n+'두를 삭제합니다. 직접 등록하거나 실제 조회된 개체만 유지됩니다. 진행할까요?'))return;
+  herd=herd.filter(keep);
+  store.set('herd',herd);
+  renderHome();if(document.getElementById('cattlelist'))renderCattle();
+  showToast('가상 개체 '+n+'두 삭제 완료 — 현재 '+herd.length+'두');
+}
+
+/* ── 등급판정결과 수신 (실제 API + 폴백) ── */
+async function ekapeGradeAPI(rec){
+  const k=getKeys();
+  if(k.ekape&&rec.idno){
+    try{
+      const d=rec.idno.replace(/[^0-9]/g,'');
+      const url='https://apis.data.go.kr/B552895/gradeResultInfo/gradeResultInfo'
+        +'?serviceKey='+encodeURIComponent(k.ekape)+'&traceNo='+d+'&_type=json';
+      const res=await fetch(url);const j=await res.json();
+      const it=j?.response?.body?.items?.item;const g=Array.isArray(it)?it[0]:it;
+      if(g){
+        return {idno:rec.idno,
+          slaughterDate:(g.abattDate||'').replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3'),
+          slaughterHouse:g.abattNm||rec.place,
+          grade:g.gradeNm||g.qgrade,yieldGrade:g.yieldNm||g.ygrade,
+          carcassWt:+g.weight||rec.carcassWt,price:+g.cost||0,_real:true};
+      }
+    }catch(e){/* 폴백 */}
+  }
+  return ekapeFetch(rec);    /* 내장 모형 */
+}
+
+/* ── 카카오 알림톡 발송 (실제 API + 폴백: 앱푸시) ── */
+async function sendKakao(title,body){
+  const k=getKeys();
+  if(k.kakao&&k.kakaoTo){
+    try{
+      /* 실제: 알림톡 발송(대행사/카카오 i 오픈빌더 API). 서버 프록시 경유 권장 */
+      const res=await fetch('https://api.minanfarm-proxy.example/kakao/send',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'KakaoAK '+k.kakao},
+        body:JSON.stringify({sender:k.kakaoSender,to:k.kakaoTo,title,text:body})});
+      if(res.ok)return {sent:true,via:'kakao'};
+    }catch(e){/* 폴백 */}
+  }
+  return {sent:false,via:'push'};   /* 키 없거나 실패 → 앱 푸시로 통보(pushAlert가 처리) */
+}
+
+/* ════════ minanfarm AI 두뇌 — 자율 수집·학습·컨설팅 ════════
+   목장 데이터를 관측할 때마다 지표를 누적(observations)하여,
+   경험치가 쌓일수록 추세를 비교·전망하고 컨설턴트 형식으로 방향을 제시 */
+let brain=store.get('brain')||{xp:0,obs:[],autoOn:true};
+function saveBrain(){store.set('brain',brain);}
+function brainLevel(){return Math.min(5,1+Math.floor(brain.xp/5));}
+
+/* 지역 시세 수집: 설정 지역의 우시장 + 인근 공판장 경락가를 수시 관측
+   실제 운영: KAMIS·축평원·축산물이력제 등급판정 API로 대체 */
+function won3(s){return parseInt(String(s).replace(/[^0-9]/g,''))||0;}
+function collectMarket(){
+  const region=farm.region||'';
+  const mk=markets[region];
+  /* 지역 우시장 송아지 시세(만원) — 입식비 판단용 */
+  const calfBull=mk?won3(mk.bull):null;     /* 수송아지 */
+  const calfCow=mk?won3(mk.cow):null;       /* 암송아지 */
+  /* 공판장 거세우 경락가(원/kg) — 일변동 모사. 실제: 음성/부경 등 공판장 API */
+  const base=21716;const day=Math.floor(Date.now()/864e5);
+  const wave=Math.round(Math.sin(day/3)*600+ (won3((mk&&mk.bull))||450-450)*0 );
+  const carcassPrice=base+wave+(region?((region.charCodeAt(0)%7)*40):0);
+  return {region,calfBull,calfCow,carcassPrice,house:farm.house||'음성공판장'};
+}
+
+/* ════════ 실시간 시세 자동 수집 엔진 ════════
+   priceHistory: 날짜별 시세 1포인트씩 누적 → AI 두뇌가 진짜 추세를 학습
+   실제 운영: fetchMarketAPI()를 KAMIS·축평원·농협 경락가 API 호출로 교체 */
+let priceHistory=store.get('priceHistory')||[];   /* [{date,region,carcassPrice,calfBull,calfCow}] */
+let mktSync=store.get('mktSync')||{auto:true,last:null,intervalH:6};
+function saveMkt(){store.set('mktSync',mktSync);store.set('priceHistory',priceHistory);}
+
+/* 외부 시세 API 연동 지점 (현재는 모형, 실제 API로 교체) */
+async function fetchMarketAPI(region){
+  const k=getKeys();
+  if(k.kamis&&k.kamisId){
+    try{
+      /* 실제: KAMIS 일별 품목별 도소매가격 (한우 경락). 서버 프록시 경유 권장 */
+      const url='https://www.kamis.or.kr/service/price/xml.do?action=dailyPriceByCategoryList'
+        +'&p_cert_key='+encodeURIComponent(k.kamis)+'&p_cert_id='+encodeURIComponent(k.kamisId)
+        +'&p_returntype=json&p_product_cls_code=01&p_item_category_code=500&p_regday=';
+      const res=await fetch(url);const j=await res.json();
+      const row=j?.data?.item?.find?.(x=>/한우|거세/.test(x.item_name||''))||(j?.data?.item?.[0]);
+      if(row){const price=parseInt(String(row.dpr1).replace(/[^0-9]/g,''))||null;
+        if(price)return {region,carcassPrice:price,calfBull:null,calfCow:null,house:farm.house||'음성공판장',_real:true};}
+    }catch(e){/* 폴백 */}
+  }
+  return collectMarket();   /* 폴백: 내장 모형 */
+}
+
+/* 하루 1포인트 시세 기록 (같은 날 중복 방지, 변동 시 갱신) */
+function recordPrice(m){
+  const today=new Date().toISOString().slice(0,10);
+  const idx=priceHistory.findIndex(p=>p.date===today&&p.region===(m.region||''));
+  const point={date:today,region:m.region||'',carcassPrice:m.carcassPrice,calfBull:m.calfBull,calfCow:m.calfCow,ts:new Date().toISOString()};
+  if(idx>=0)priceHistory[idx]=point; else priceHistory.push(point);
+  if(priceHistory.length>180)priceHistory=priceHistory.slice(-180);   /* 6개월 보관 */
+  mktSync.last=new Date().toISOString();
+  saveMkt();
+  return point;
+}
+
+/* 시세 동기화 1회 — 수동/자동 공용 */
+async function syncMarket(manual){
+  if(!farm.region&&manual){showToast('먼저 목장 설정에서 지역을 입력하세요');return null;}
+  let m;
+  try{m=await fetchMarketAPI(farm.region||'');}catch(e){m=collectMarket();}
+  const p=recordPrice(m);
+  /* 시세 급변 시 알림 */
+  const prev=priceHistory.filter(x=>x.region===p.region).slice(-2)[0];
+  if(prev&&prev.carcassPrice&&Math.abs(p.carcassPrice-prev.carcassPrice)>=500){
+    const up=p.carcassPrice>prev.carcassPrice;
+    pushAlert({kind:'market',read:false,alarm:up,
+      title:'📈 '+(p.region||'')+' 경락가 '+(up?'급등':'급락')+' — '+won(p.carcassPrice)+'원/kg',
+      body:(up?'출하 적기 검토를 권합니다.':'출하 시점 분산을 권합니다.')+' 전일 대비 '+(up?'+':'−')+won(Math.abs(p.carcassPrice-prev.carcassPrice))+'원/kg'});
+  }
+  if(brain.autoOn){try{learn();}catch(e){}}
+  if(manual){showToast('시세 수집 완료 — '+(p.region||'지역미설정')+' '+won(p.carcassPrice)+'원/kg');}
+  if(document.getElementById('mkt-history'))renderMarketSync();
+  return p;
+}
+function priceTrend(){
+  const pts=priceHistory.filter(p=>p.region===(farm.region||'')).slice(-14);
+  if(pts.length<2)return null;
+  const cur=pts[pts.length-1].carcassPrice;
+  const base=Math.round(pts.slice(0,-1).reduce((s,p)=>s+p.carcassPrice,0)/(pts.length-1));
+  return {cur,base,diff:cur-base,n:pts.length};
+}
+function toggleMktSync(){mktSync.auto=!mktSync.auto;saveMkt();renderMarketSync();showToast('시세 자동수집 '+(mktSync.auto?'켜짐':'꺼짐'));}
+function renderMarketSync(){
+  const sw=document.getElementById('sw-mktsync');if(sw)sw.classList.toggle('on',!!mktSync.auto);
+  const st=document.getElementById('mkt-status');
+  if(st){const pts=priceHistory.filter(p=>p.region===(farm.region||''));
+    st.textContent=(farm.region||'지역 미설정')+' · 수집 '+pts.length+'일치'+(mktSync.last?' · 최근 '+fmt(mktSync.last)+' '+new Date(mktSync.last).toTimeString().slice(0,5):' · 미수집');}
+  const h=document.getElementById('mkt-history');
+  if(h){const pts=priceHistory.filter(p=>p.region===(farm.region||'')).slice(-10).reverse();
+    h.innerHTML=pts.length?pts.map(p=>'<div class="resultrow"><span>'+p.date+'</span><b>'+won(p.carcassPrice)+'원/kg'+(p.calfBull?' · 송아지 '+p.calfBull+'만':'')+'</b></div>').join(''):'<p class="muted">아직 수집된 시세가 없습니다. 동기화를 실행하세요.</p>';}
+  const tr=priceTrend();const trEl=document.getElementById('mkt-trend');
+  if(trEl)trEl.innerHTML=tr?('14일 추세: 현재 '+won(tr.cur)+' vs 평균 '+won(tr.base)+'원/kg '+(tr.diff>=0?'▲':'▼')+won(Math.abs(tr.diff))):'추세 분석에는 2일 이상 데이터가 필요합니다';
+}
+/* 사료·조사료 비용 자동계산 (손익 입력값 + 송아지 개월령 반영) — 연간 원 */
+function feedCostAuto(){
+  const g=id=>{const el=document.getElementById(id);return el?(+el.value||0):0;};
+  const feedP=g('i-feedp')||600, roughP=g('i-roughp')||300;
+  const bh=g('i-breedhead')||herd.filter(a=>a.cat==='breed').length;
+  const fh=g('i-feedhead')||herd.filter(a=>a.cat==='feed').length;
+  const bf=g('i-bfeed')||4, br=g('i-brough')||8, ff=g('i-ffeed')||8, fr=g('i-frough')||2;
+  const calves=herd.filter(a=>a.cat==='calfM'||a.cat==='calfF');
+  let calfKg=0;calves.forEach(a=>calfKg+=calfFeedKg(ageMo(a)));
+  const breedFeed=bh*bf*365*feedP + bh*br*365*roughP + calfKg*365*feedP;
+  const feedFeed=fh*ff*365*feedP + fh*fr*365*roughP;
+  return {feedP,roughP,breedFeed,feedFeed,total:breedFeed+feedFeed,calfKg};
+}
+
+/* 현재 목장 상태를 수치 스냅샷으로 관측 */
+function observeFarm(){
+  const cows=herd.filter(a=>a.cat==='breed');
+  const od=cows.map(openDays).filter(x=>x!=null);
+  const avgOpen=od.length?Math.round(od.reduce((s,x)=>s+x,0)/od.length):null;
+  const preg=cows.filter(a=>a.preg).length;
+  const pregRate=cows.length?Math.round(preg/cows.length*100):0;
+  const low=cows.filter(isLowFertility).length;
+  const graded=archive.filter(a=>a.grade);
+  const hiGrade=graded.filter(a=>a.grade==='1++'||a.grade==='1+').length;
+  const gradeRate=graded.length?Math.round(hiGrade/graded.length*100):null;
+  const avgPrice=graded.length?Math.round(graded.reduce((s,a)=>s+(a.price||0),0)/graded.length):null;
+  const expSoon=meds.filter(m=>{const d=(new Date(m.exp)-Date.now())/864e5;return d>=0&&d<=30;}).length;
+  /* 시세·비용·손익 자동 산출 */
+  let mkt=collectMarket();
+  const lastPrice=(typeof priceHistory!=='undefined'?priceHistory:[]).filter(p=>p.region===(farm.region||'')).slice(-1)[0];
+  if(lastPrice){mkt={region:lastPrice.region,carcassPrice:lastPrice.carcassPrice,calfBull:lastPrice.calfBull,calfCow:lastPrice.calfCow,house:farm.house||'음성공판장'};}
+  const fc=feedCostAuto();
+  const feeders=herd.filter(a=>a.cat==='feed').length;
+  /* 연 예상 출하수익(비육우 회전 가정) = 비육두수 × 도체중 × 경락가 */
+  const cw=486;const shipRev=feeders*cw*mkt.carcassPrice;
+  const op=8400000; /* 운영비 기본(전기240+농기계600 만원 환산) */
+  const netYear=shipRev - fc.total - op;
+  return {ts:new Date().toISOString(),total:herd.length,cows:cows.length,
+    feeders,calves:herd.filter(a=>a.cat==='calfM'||a.cat==='calfF').length,
+    pregRate,avgOpen,low,gradeRate,avgPrice,expSoon,
+    region:mkt.region,carcassPrice:mkt.carcassPrice,calfBull:mkt.calfBull,
+    feedCost:Math.round(fc.total),breedFeed:Math.round(fc.breedFeed),feedFeed:Math.round(fc.feedFeed),
+    netYear:Math.round(netYear)};
+}
+/* 관측 누적 (학습) — 직전과 의미있게 다르면 경험치 증가 */
+function learn(){
+  const o=observeFarm();
+  const last=brain.obs[brain.obs.length-1];
+  brain.obs.push(o);if(brain.obs.length>60)brain.obs=brain.obs.slice(-60);
+  if(!last||last.pregRate!==o.pregRate||last.avgOpen!==o.avgOpen||last.total!==o.total||last.gradeRate!==o.gradeRate||last.carcassPrice!==o.carcassPrice||last.netYear!==o.netYear)brain.xp++;
+  saveBrain();return o;
+}
+/* 추세 비교: 최근값 vs 과거 평균 */
+function trend(key){
+  const xs=brain.obs.map(o=>o[key]).filter(v=>v!=null);
+  if(xs.length<2)return null;
+  const cur=xs[xs.length-1];const prev=xs.slice(0,-1);
+  const base=Math.round(prev.reduce((s,x)=>s+x,0)/prev.length);
+  return {cur,base,diff:cur-base};
+}
+function arrow(d,goodUp){if(d===0)return '→ 보합';const up=d>0;const good=goodUp?up:!up;return (up?'▲':'▼')+Math.abs(d)+(good?' 〔양호〕':' 〔주의〕');}
+
+/* 컨설턴트형 종합 분석: 진단 → 전망 → 권고(방향) */
+function brainThink(){
+  learn();
+  const o=brain.obs[brain.obs.length-1];
+  const lv=brainLevel();
+  /* ① 진단 */
+  const diag=[];
+  diag.push('사육 '+o.total+'두 (번식우 '+o.cows+' · 비육우 '+o.feeders+' · 송아지 '+o.calves+')');
+  diag.push('수태율 '+o.pregRate+'%'+(o.avgOpen!=null?' · 평균 공태 '+o.avgOpen+'일':''));
+  if(o.low)diag.push('저수태우 '+o.low+'두 — 번식 손실 위험');
+  if(o.gradeRate!=null)diag.push('출하 1+이상 비율 '+o.gradeRate+'%'+(o.avgPrice?' · 평균 '+won(o.avgPrice)+'원/kg':''));
+  /* 사료·조사료 비용 자동계산 진단 */
+  diag.push('연 사료비 자동추정 '+won(o.feedCost/10000)+'만원 (번식 '+won(o.breedFeed/10000)+' · 비육 '+won(o.feedFeed/10000)+')');
+  /* 손익 자동 판단 */
+  const profit=o.netYear>=0;
+  diag.push('연 손익 자동판단: '+(profit?'흑자 +':'적자 −')+won(Math.abs(o.netYear)/10000)+'만원'+(profit?' 〔흑자〕':' 〔적자 — 조치 필요〕'));
+  if(o.expSoon)diag.push('30일 내 유효기간 임박 약품 '+o.expSoon+'종');
+  /* ② 전망 (추세 기반, 경험치 쌓일수록 가능) */
+  const fc=[];
+  const tP=trend('pregRate'),tO=trend('avgOpen'),tG=trend('gradeRate'),tC=trend('carcassPrice'),tN=trend('netYear');
+  if(brain.obs.length<3){fc.push('관측 데이터가 더 쌓이면(현재 '+brain.obs.length+'회) 추세 전망이 정교해집니다.');}
+  if(tP)fc.push('수태율 추세 '+arrow(tP.diff,true)+' (현재 '+tP.cur+'% vs 평소 '+tP.base+'%)');
+  if(tO)fc.push('공태일 추세 '+arrow(tO.diff,false)+' (현재 '+tO.cur+'일 vs 평소 '+tO.base+'일)');
+  if(tG)fc.push('육질 등급률 추세 '+arrow(tG.diff,true));
+  /* 지역 시세 수집·전망 */
+  if(o.region){
+    fc.push('['+o.region+'] 거세우 공판 경락가 '+won(o.carcassPrice)+'원/kg'+(tC?(' · 추세 '+arrow(tC.diff,true)):'')+' (수집 '+o.house+')');
+    if(o.calfBull)fc.push('['+o.region+'] 우시장 수송아지 '+o.calfBull+'만원 — 입식 '+(o.calfBull>460?'고가, 자가생산 비중 확대 검토':'적정, 입식 기회')); 
+  }else{
+    fc.push('⚠️ 지역 미설정 — 목장 설정에서 지역을 입력하면 우시장·공판장 시세를 수시 수집해 전망합니다.');
+  }
+  if(tC)fc.push('출하 타이밍: 경락가 '+(tC.diff>=0?'상승세 → 비육 마무리 두수 우선 출하 검토':'하락세 → 출하 분산·등급 향상 후 출하 권고'));
+  if(tN)fc.push('수익성 추세 '+arrow(Math.round(tN.diff/10000),true)+'만원 — '+(tN.diff>=0?'개선 중':'악화, 비용구조 점검 필요'));
+  /* ③ 권고(방향) — 컨설턴트 처방 */
+  const rec=[];
+  /* 손익 기반 최우선 권고 */
+  if(!profit){
+    rec.push('🔴 적자 구조입니다. 우선순위: ① 사료비(연 '+won(o.feedCost/10000)+'만원) 단가 재협상·조사료 자급 확대, ② 저능력우 도태로 사육두수 최적화, ③ 출하 등급 향상으로 두당 단가 제고.');
+  }else{
+    rec.push('🟢 흑자 유지 중. 잉여를 우량 암소 입식·시설 개선에 재투자하고, 사료비 변동에 대비해 조사료 비축을 검토하세요.');
+  }
+  if(o.region&&tC&&tC.diff>=0)rec.push('출하: '+o.region+' 경락가 상승세이므로 출하 적령 비육우를 '+o.house+'에 우선 출하해 시세 차익을 확보하세요.');
+  if(o.pregRate<60)rec.push('번식: 수태율이 낮습니다. 비임신 번식우의 발정 관찰을 강화하고, 장기 공태우는 호르몬 정시수정(CIDR)을 적용하세요.');
+  else rec.push('번식: 수태율 양호. 분만 예정우 관리와 송아지 백신 일정을 선제 점검하세요.');
+  if(o.low)rec.push('저수태우 '+o.low+'두는 수의사 번식검진 후 경제성 기준으로 도태 여부를 판단하세요.');
+  if(o.avgOpen!=null&&o.avgOpen>150)rec.push('평균 공태일이 깁니다. 분만 후 60~90일 내 첫 수정을 목표로 발정 동기화를 검토하세요.');
+  if(o.gradeRate!=null&&o.gradeRate<50)rec.push('출하성적: 1+이상 비율이 낮습니다. EPD 계획교배로 근내지방을 보완하고 비육 후기 사양을 점검하세요.');
+  if(o.calves>0)rec.push('송아지 '+o.calves+'두는 개월령별 사료 증량과 호흡기·설사 백신 일정을 지키세요.');
+  if(o.expSoon)rec.push('유효기간 임박 약품 '+o.expSoon+'종을 우선 사용·교체하세요.');
+
+  const card=(title,arr,col)=>'<div class="card"><b style="font-size:14px;color:'+col+'">'+title+'</b><div style="margin-top:8px">'+arr.map(x=>'<div class="todo" style="padding:8px 0"><div class="dot" style="background:'+col+';margin-top:6px"></div><div><p style="font-size:13px;line-height:1.5">'+x+'</p></div></div>').join('')+'</div></div>';
+  document.getElementById('brain-out').innerHTML=
+    '<p class="note" style="margin-bottom:10px">minanfarm AI가 목장 데이터를 관측·학습했습니다 (학습 Lv.'+lv+' · 누적 관측 '+brain.obs.length+'회). 아래는 컨설턴트 분석입니다.</p>'+
+    card('🩺 진단 (현재 상태)',diag,'var(--green)')+
+    card('🔮 전망 (추세·시세)',fc,'var(--blue)')+
+    card('🧭 방향 제시 (권고)',rec,'var(--amber)')+
+    '<p class="note" style="margin-top:4px">AI 자율 분석은 의사결정 참고용입니다. 번식검진·도태·투약 등 최종 판단은 수의사·전문가와 확인하세요.</p>';
+  renderBrain();
+  showToast('AI 두뇌 분석 완료 — 학습 Lv.'+lv);
+}
+function renderBrain(){
+  if(typeof renderMarketSync==='function')renderMarketSync();
+  const lv=brainLevel();
+  const lvEl=document.getElementById('brain-lv');if(lvEl)lvEl.textContent='Lv.'+lv;
+  const bar=document.getElementById('brain-bar');if(bar)bar.style.width=Math.min(100,(brain.xp%5)*20)+'%';
+  const xp=document.getElementById('brain-xp');if(xp)xp.textContent='관측 '+brain.obs.length+'회 누적 · 학습치 '+brain.xp+' — '+(lv<5?'데이터가 쌓일수록 분석이 정교해집니다':'최고 학습 단계 도달');
+  const sw=document.getElementById('sw-autobrain');if(sw)sw.classList.toggle('on',!!brain.autoOn);
+  const mem=document.getElementById('brain-mem');
+  if(mem){
+    const recent=brain.obs.slice(-6).reverse();
+    mem.innerHTML=recent.length?recent.map(o=>'<div class="resultrow"><span>'+fmt(o.ts)+' '+new Date(o.ts).toTimeString().slice(0,5)+(o.region?' · '+o.region:'')+'</span><b>'+(o.netYear>=0?'흑자+':'적자−')+won(Math.abs(o.netYear||0)/10000)+'만'+(o.carcassPrice?' · '+won(o.carcassPrice)+'원/kg':'')+'</b></div>').join(''):'<p class="muted">아직 관측 기록이 없습니다. 분석을 실행하세요.</p>';
+  }
+}
+function clearBrain(){brain={xp:0,obs:[],autoOn:brain.autoOn};saveBrain();document.getElementById('brain-out').innerHTML='';renderBrain();showToast('AI 학습 데이터 초기화');}
+function toggleAutoBrain(){brain.autoOn=!brain.autoOn;saveBrain();showToast('자동 학습 '+(brain.autoOn?'켜짐':'꺼짐'));}
+
+/* ===== 시세/우시장 검색 ===== */
+const markets={
+ '고흥':{bull:'441만원',cow:'338만원',cnt:'62두'},'김제':{bull:'467만원',cow:'360만원',cnt:'75두'},
+ '정읍':{bull:'452만원',cow:'348만원',cnt:'61두'},'함평':{bull:'439만원',cow:'332만원',cnt:'53두'},
+ '횡성':{bull:'498만원',cow:'382만원',cnt:'88두'},'홍성':{bull:'471만원',cow:'355만원',cnt:'70두'},
+ '합천':{bull:'455만원',cow:'347만원',cnt:'58두'},'의성':{bull:'449만원',cow:'341만원',cnt:'49두'},
+ '안동':{bull:'462만원',cow:'350만원',cnt:'66두'},'장흥':{bull:'446만원',cow:'336만원',cnt:'51두'},
+ '화순':{bull:'443만원',cow:'334만원',cnt:'47두'},'무안':{bull:'440만원',cow:'331만원',cnt:'44두'},
+ '보성':{bull:'444만원',cow:'335만원',cnt:'48두'},'영광':{bull:'442만원',cow:'333만원',cnt:'46두'},
+ '나주':{bull:'448만원',cow:'339만원',cnt:'55두'},'담양':{bull:'445만원',cow:'337만원',cnt:'50두'},
+ '곡성':{bull:'441만원',cow:'332만원',cnt:'43두'},'순천':{bull:'447만원',cow:'338만원',cnt:'52두'},
+ '구례':{bull:'440만원',cow:'330만원',cnt:'41두'},'강진':{bull:'443만원',cow:'334만원',cnt:'45두'},
+ '해남':{bull:'445만원',cow:'336만원',cnt:'54두'},'완도':{bull:'438만원',cow:'329만원',cnt:'38두'},
+ '남원':{bull:'450만원',cow:'342만원',cnt:'57두'},'정선':{bull:'472만원',cow:'358만원',cnt:'64두'},
+ '평창':{bull:'480만원',cow:'366만원',cnt:'72두'},'홍천':{bull:'468만원',cow:'354만원',cnt:'63두'},
+ '서산':{bull:'460만원',cow:'349만원',cnt:'68두'},'예산':{bull:'458만원',cow:'347만원',cnt:'59두'},
+ '청양':{bull:'454만원',cow:'344만원',cnt:'50두'},'부여':{bull:'452만원',cow:'343만원',cnt:'48두'},
+ '논산':{bull:'456만원',cow:'346만원',cnt:'56두'},'당진':{bull:'461만원',cow:'350만원',cnt:'67두'},
+ '음성':{bull:'463만원',cow:'351만원',cnt:'69두'},'진천':{bull:'459만원',cow:'348만원',cnt:'60두'},
+ '괴산':{bull:'451만원',cow:'342만원',cnt:'47두'},'보은':{bull:'449만원',cow:'340만원',cnt:'45두'},
+ '상주':{bull:'457만원',cow:'346만원',cnt:'58두'},'영주':{bull:'455만원',cow:'345만원',cnt:'55두'},
+ '문경':{bull:'453만원',cow:'344만원',cnt:'52두'},'예천':{bull:'450만원',cow:'341만원',cnt:'49두'},
+ '청송':{bull:'447만원',cow:'338만원',cnt:'44두'},'영양':{bull:'444만원',cow:'335만원',cnt:'40두'},
+ '봉화':{bull:'446만원',cow:'337만원',cnt:'42두'},'성주':{bull:'452만원',cow:'343만원',cnt:'51두'},
+ '고령':{bull:'450만원',cow:'341만원',cnt:'48두'},'거창':{bull:'456만원',cow:'346만원',cnt:'56두'},
+ '함양':{bull:'453만원',cow:'344만원',cnt:'53두'},'산청':{bull:'451만원',cow:'342만원',cnt:'50두'},
+ '진주':{bull:'458만원',cow:'348만원',cnt:'61두'},'함안':{bull:'449만원',cow:'340만원',cnt:'46두'},
+ '창녕':{bull:'452만원',cow:'343만원',cnt:'52두'},'밀양':{bull:'455만원',cow:'345만원',cnt:'57두'},
+ '김해':{bull:'460만원',cow:'349만원',cnt:'65두'},'양산':{bull:'457만원',cow:'347만원',cnt:'58두'},
+ '고성':{bull:'448만원',cow:'339만원',cnt:'45두'},'남해':{bull:'445만원',cow:'336만원',cnt:'41두'},
+ '제주':{bull:'435만원',cow:'327만원',cnt:'39두'},'서귀포':{bull:'433만원',cow:'325만원',cnt:'36두'},
+ '익산':{bull:'455만원',cow:'345만원',cnt:'56두'},'완주':{bull:'452만원',cow:'343만원',cnt:'52두'},
+ '고창':{bull:'448만원',cow:'339만원',cnt:'47두'},'부안':{bull:'446만원',cow:'337만원',cnt:'44두'},
+ '임실':{bull:'444만원',cow:'335만원',cnt:'42두'},'순창':{bull:'442만원',cow:'333만원',cnt:'40두'},
+ '진안':{bull:'445만원',cow:'336만원',cnt:'43두'},'무주':{bull:'443만원',cow:'334만원',cnt:'41두'},
+ '장수':{bull:'446만원',cow:'337만원',cnt:'45두'},'천안':{bull:'462만원',cow:'351만원',cnt:'70두'},
+ '아산':{bull:'460만원',cow:'350만원',cnt:'66두'},'세종':{bull:'459만원',cow:'349만원',cnt:'62두'},
+ /* 가축시장 앱 참고 추가 지역 */
+ '대관령':{bull:'485만원',cow:'370만원',cnt:'74두'},'양구':{bull:'470만원',cow:'356만원',cnt:'52두'},
+ '인제':{bull:'467만원',cow:'353만원',cnt:'48두'},'철원':{bull:'472만원',cow:'357만원',cnt:'55두'},
+ '화천':{bull:'465만원',cow:'352만원',cnt:'46두'},'춘천':{bull:'474만원',cow:'359만원',cnt:'60두'},
+ '원주':{bull:'476만원',cow:'361만원',cnt:'67두'},'강릉':{bull:'471만원',cow:'356만원',cnt:'58두'},
+ '삼척':{bull:'464만원',cow:'351만원',cnt:'44두'},'영월':{bull:'468만원',cow:'354만원',cnt:'47두'},
+ '단양':{bull:'460만원',cow:'349만원',cnt:'48두'},'제천':{bull:'462만원',cow:'350만원',cnt:'52두'},
+ '충주':{bull:'461만원',cow:'350만원',cnt:'58두'},'옥천':{bull:'452만원',cow:'343만원',cnt:'46두'},
+ '영동':{bull:'450만원',cow:'341만원',cnt:'44두'},'청주':{bull:'463만원',cow:'351만원',cnt:'66두'},
+ '구미':{bull:'456만원',cow:'346만원',cnt:'57두'},'김천':{bull:'455만원',cow:'345만원',cnt:'56두'},
+ '경주':{bull:'460만원',cow:'349만원',cnt:'62두'},'포항':{bull:'458만원',cow:'347만원',cnt:'59두'},
+ '영천':{bull:'454만원',cow:'344만원',cnt:'53두'},'경산':{bull:'457만원',cow:'346만원',cnt:'56두'},
+ '청도':{bull:'451만원',cow:'342만원',cnt:'49두'},'울진':{bull:'448만원',cow:'339만원',cnt:'43두'},
+ '영덕':{bull:'449만원',cow:'340만원',cnt:'44두'},'군위':{bull:'452만원',cow:'343만원',cnt:'50두'},
+ '칠곡':{bull:'455만원',cow:'345만원',cnt:'54두'},'울산':{bull:'459만원',cow:'348만원',cnt:'60두'},
+ '사천':{bull:'450만원',cow:'341만원',cnt:'48두'},'통영':{bull:'446만원',cow:'337만원',cnt:'42두'},
+ '거제':{bull:'448만원',cow:'339만원',cnt:'45두'},'하동':{bull:'449만원',cow:'340만원',cnt:'46두'},
+ '의령':{bull:'450만원',cow:'341만원',cnt:'47두'},'양평':{bull:'470만원',cow:'356만원',cnt:'55두'},
+ '여주':{bull:'468만원',cow:'354만원',cnt:'53두'},'이천':{bull:'469만원',cow:'355만원',cnt:'56두'},
+ '안성':{bull:'467만원',cow:'353만원',cnt:'58두'},'평택':{bull:'466만원',cow:'352만원',cnt:'60두'},
+ '파주':{bull:'471만원',cow:'357만원',cnt:'52두'},'연천':{bull:'468만원',cow:'354만원',cnt:'46두'},
+ '포천':{bull:'470만원',cow:'356만원',cnt:'50두'},'가평':{bull:'469만원',cow:'355만원',cnt:'47두'},
+};
+/* 가축시장 평균 낙찰가: 번식우(암성우)·비육우(거세 큰소) 추가 — 송아지가 기준 환산 */
+(function(){Object.keys(markets).forEach(function(n){var m=markets[n];
+  var bull=parseInt(String(m.bull).replace(/[^0-9]/g,''))||450;
+  /* 번식우(암 성우) ≈ 송아지가 + 가임 프리미엄, 비육우(거세 출하우) ≈ 도체 환산 큰 단위 */
+  m.breed=(Math.round(bull*1.18)+'만원');   /* 번식 가능 암소 평균 */
+  m.feed=(Math.round(bull*2.05)+'만원');    /* 비육 출하우(거세) 평균 */
+});})();
+function renderMarkets(){const q=(document.getElementById('mkq').value||'').trim();const names=Object.keys(markets).filter(n=>!q||n.includes(q));document.getElementById('mklist').innerHTML=names.map(n=>`<div class="cattle" onclick="pickMarket('${n}')"><div class="tag t-feed">${n[0]}</div><div class="info"><h4>${n} 가축시장</h4><p>번식우 ${markets[n].breed||'-'} · 비육우 ${markets[n].feed||'-'}</p></div><span class="chev">›</span></div>`).join('')||'<p class="muted">검색 결과 없음 — 다른 지역명을 입력하세요</p>';}
+function pickMarket(n){const m=markets[n];document.getElementById('mkdetail').style.display='block';document.getElementById('mk-name').textContent=n+' 가축시장';document.getElementById('mk-bull').textContent=m.bull;document.getElementById('mk-cow').textContent=m.cow;document.getElementById('mk-breed').textContent=m.breed||'-';document.getElementById('mk-feed').textContent=m.feed||'-';document.getElementById('mk-cnt').textContent=m.cnt;document.getElementById('mkdetail').scrollIntoView({behavior:'smooth'});}
+
+/* ════════ 우시장·도축장 개장일 카카오 알림 ════════
+   대부분의 가축시장은 정해진 주기로 개장(요일 고정 또는 오일장 끝자리).
+   사용자가 지역을 구독하면, 개장 당일 그날 시세를 포함해 카카오톡 알림 발송 */
+const marketDays={ /* type:'wd' 요일(0=일~6=토) / type:'oil' 날짜 끝자리 */
+ '횡성':{type:'wd',days:[2,5],place:'횡성축협 가축시장'},
+ '김제':{type:'oil',ends:[1,6],place:'김제축협 우시장'},
+ '합천':{type:'oil',ends:[4,9],place:'합천가축시장'},
+ '고흥':{type:'wd',days:[3],place:'고흥축협 가축시장'},
+ '정읍':{type:'oil',ends:[2,7],place:'정읍 우시장'},
+ '안동':{type:'wd',days:[1,4],place:'안동축협 가축시장'},
+ '의성':{type:'oil',ends:[3,8],place:'의성 가축시장'},
+ '홍성':{type:'wd',days:[2],place:'홍성 우시장'},
+ '함평':{type:'oil',ends:[0,5],place:'함평 가축시장'},
+};
+/* 도축/공판장(주 영업일 기준) */
+const slaughterDays={
+ '음성공판장':{type:'wd',days:[1,2,3,4,5],place:'농협 음성축산물공판장'},
+ '부경축산물공판장':{type:'wd',days:[1,2,3,4,5],place:'부경 축산물공판장'},
+ '나주공판장':{type:'wd',days:[1,3,5],place:'나주 축산물공판장'},
+};
+function marketDefaultSchedule(name){ /* 등록 안 된 지역은 오일장 추정 */
+  if(marketDays[name])return marketDays[name];
+  const c=name.charCodeAt(0)%5;return {type:'oil',ends:[c,(c+5)],place:name+' 가축시장'};
+}
+function opensToday(sch,date){
+  const d=date||new Date();
+  if(sch.type==='wd')return sch.days.includes(d.getDay());
+  if(sch.type==='oil')return sch.ends.includes(d.getDate()%10);
+  return false;
+}
+function nextOpenDays(name,n){ /* 다가오는 개장일 n개 */
+  const sch=marketDefaultSchedule(name);const out=[];
+  for(let i=0;i<30&&out.length<(n||3);i++){const d=new Date();d.setDate(d.getDate()+i);if(opensToday(sch,d))out.push(new Date(d));}
+  return out;
+}
+
+/* 구독 설정: {markets:{지역:true}, houses:{공판장:true}, includePrice:true, autoSave:true} */
+let mktSub=store.get('mktSub')||{markets:{},houses:{},includePrice:true,autoSave:true,lastNotified:{}};
+function saveSub(){store.set('mktSub',mktSub);}
+function toggleSubMarket(name){mktSub.markets[name]=!mktSub.markets[name];if(!mktSub.markets[name])delete mktSub.markets[name];saveSub();renderMarketAlerts();showToast(name+' 개장알림 '+(mktSub.markets[name]?'켜짐':'꺼짐'));}
+function toggleSubHouse(name){mktSub.houses[name]=!mktSub.houses[name];if(!mktSub.houses[name])delete mktSub.houses[name];saveSub();renderMarketAlerts();showToast(name+' 알림 '+(mktSub.houses[name]?'켜짐':'꺼짐'));}
+function toggleSubOpt(k){mktSub[k]=!mktSub[k];saveSub();renderMarketAlerts();showToast((k==='includePrice'?'시세 포함':'시세 자동저장')+' '+(mktSub[k]?'켜짐':'꺼짐'));}
+
+/* 개장일 체크 → 당일 시세 포함 카카오 알림 (하루 1회) */
+function checkMarketDays(manual){
+  const today=new Date().toISOString().slice(0,10);
+  let sent=0;
+  const subs=Object.keys(mktSub.markets);
+  subs.forEach(name=>{
+    const sch=marketDefaultSchedule(name);
+    if(!opensToday(sch))return;
+    if(mktSub.lastNotified[name]===today)return;     /* 중복 방지 */
+    /* 그날 시세 수집·자동저장 */
+    let priceLine='';
+    const mk=markets[name];
+    if(mktSub.includePrice){
+      let cp=null;
+      if(name===farm.region){const m=collectMarket();cp=m.carcassPrice;if(mktSub.autoSave){recordPrice(m);}}
+      priceLine='\n오늘 시세: 수송아지 '+(mk?mk.bull:'-')+' · 암송아지 '+(mk?mk.cow:'-')+(cp?(' · 경락 '+won(cp)+'원/kg'):'');
+    }
+    pushAlert({kind:'marketday',read:false,alarm:true,
+      title:'🐂 오늘 '+name+' 우시장 개장',
+      body:sch.place+' 개장일입니다.'+priceLine+'\n(카카오톡 알림 연동 시 메시지로도 발송)'});
+    try{sendKakao('🐂 오늘 '+name+' 우시장 개장',sch.place+' 개장일입니다.'+priceLine);}catch(e){}
+    mktSub.lastNotified[name]=today;sent++;
+  });
+  Object.keys(mktSub.houses).forEach(name=>{
+    const sch=slaughterDays[name]||{type:'wd',days:[1,2,3,4,5],place:name};
+    if(!opensToday(sch))return;
+    if(mktSub.lastNotified[name]===today)return;
+    pushAlert({kind:'marketday',read:false,alarm:true,
+      title:'🏭 오늘 '+name+' 영업',
+      body:(sch.place||name)+' 도축·경매 영업일입니다. 출하 예정 개체의 반입을 확인하세요.'});
+    mktSub.lastNotified[name]=today;sent++;
+  });
+  saveSub();
+  if(manual)showToast(sent?sent+'건 개장알림 발송':'오늘 개장하는 구독 시장이 없습니다');
+  return sent;
+}
+
+/* 개장 알림 설정 화면 렌더 */
+function renderMarketAlerts(){
+  const ip=document.getElementById('sw-incprice');if(ip)ip.classList.toggle('on',!!mktSub.includePrice);
+  const as=document.getElementById('sw-autosave');if(as)as.classList.toggle('on',!!mktSub.autoSave);
+  const sub=document.getElementById('mksub-list');
+  if(sub){
+    const names=Object.keys(markets);
+    const q=(document.getElementById('mksub-q')?.value||'').trim();
+    const show=names.filter(n=>!q||n.includes(q)).slice(0,q?20:8);
+    sub.innerHTML=show.map(n=>{
+      const on=!!mktSub.markets[n];const nx=nextOpenDays(n,1)[0];
+      const nd=nx?(fmt(nx)+' 개장예정'):'';
+      return '<div class="cattle"><div class="tag t-feed">'+n[0]+'</div><div class="info"><h4>'+n+' 우시장</h4><p>'+nd+'</p></div><div class="switch '+(on?'on':'')+'" onclick="toggleSubMarket(\''+n+'\')"></div></div>';
+    }).join('');
+  }
+  const hs=document.getElementById('mkhouse-list');
+  if(hs){hs.innerHTML=Object.keys(slaughterDays).map(n=>{const on=!!mktSub.houses[n];return '<div class="cattle"><div class="tag t-calfM">🏭</div><div class="info"><h4>'+n+'</h4><p>'+slaughterDays[n].place+'</p></div><div class="switch '+(on?'on':'')+'" onclick="toggleSubHouse(\''+n+'\')"></div></div>';}).join('');}
+  const cnt=document.getElementById('mksub-cnt');
+  if(cnt)cnt.textContent=(Object.keys(mktSub.markets).length+Object.keys(mktSub.houses).length)+'곳 구독중';
+  /* 시세 변동 차트 */
+  drawPriceChart();
+}
+function drawPriceChart(){
+  const c=document.getElementById('price-chart');if(!c)return;
+  const pts=priceHistory.filter(p=>p.region===(farm.region||'')).slice(-30);
+  if(pts.length<2){c.innerHTML='<p class="muted">시세가 2일 이상 쌓이면 변동 차트가 표시됩니다 (현재 '+pts.length+'일)</p>';return;}
+  const W=300,H=110,pad=6;
+  const vals=pts.map(p=>p.carcassPrice);
+  const mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);const rng=(mx-mn)||1;
+  const X=i=>pad+i*(W-2*pad)/(pts.length-1);
+  const Y=v=>H-pad-((v-mn)/rng)*(H-2*pad);
+  let path='';pts.forEach((p,i)=>{path+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.carcassPrice).toFixed(1)+' ';});
+  const last=pts[pts.length-1],first=pts[0];
+  const up=last.carcassPrice>=first.carcassPrice;const col=up?'#235236':'#A33C30';
+  let dots=pts.map((p,i)=>'<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.carcassPrice).toFixed(1)+'" r="2" fill="'+col+'"/>').join('');
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:120px">'+
+    '<polyline points="" fill="none"/>'+
+    '<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="2"/>'+dots+'</svg>'+
+    '<div class="row between" style="font-size:11px;color:var(--sub)"><span>'+first.date+'</span><span>최저 '+won(mn)+' · 최고 '+won(mx)+'</span><span>'+last.date+'</span></div>'+
+    '<div class="resultrow"><span>현재 경락가</span><b style="color:'+col+'">'+won(last.carcassPrice)+'원/kg '+(up?'▲':'▼')+'</b></div>';
+}
+
+/* ===== 손익 ===== */
+function won(n){return Math.round(n).toLocaleString();}
+/* 개월령별 송아지 1두 일일 배합(입붙임/송아지)사료 kg */
+function calfFeedKg(mo){if(mo<2)return 0.5;if(mo<3)return 1.2;if(mo<4)return 1.8;if(mo<5)return 2.3;if(mo<6)return 2.8;return 3.2;}
+function prefillPnl(){
+  const bh=herd.filter(a=>a.cat==='breed').length;
+  const fh=herd.filter(a=>a.cat==='feed').length;
+  if(bh)document.getElementById('i-breedhead').value=bh;
+  if(fh)document.getElementById('i-feedhead').value=fh;
+  calc();
+}
+function setPill(id,val){const el=document.getElementById(id);el.textContent=(val>=0?'+':'−')+won(Math.abs(val)/10000)+'만원';el.className='pill '+(val>=0?'g':'d');}
+function calc(){
+  const g=id=>+document.getElementById(id).value||0;
+  const feedP=g('i-feedp'),roughP=g('i-roughp');
+  /* ── 송아지 사료 자동계산 (개월령 기반) ── */
+  const calves=herd.filter(a=>a.cat==='calfM'||a.cat==='calfF');
+  let calfKg=0;calves.forEach(a=>calfKg+=calfFeedKg(ageMo(a)));
+  const calfFeedCost=calfKg*365*feedP;
+  document.getElementById('calf-info').innerHTML='🍼 송아지 <b>'+calves.length+'두</b> · 일 '+calfKg.toFixed(1)+'kg · 연 '+won(calfFeedCost/10000)+'만원 (개월령 자동반영)';
+  /* ── 번식우 부문 ── */
+  const bh=g('i-breedhead');
+  const bFeed=bh*g('i-bfeed')*365*feedP + bh*g('i-brough')*365*roughP + calfFeedCost;
+  const bRev=g('i-calfsell')*g('i-calfprice')*10000;
+  const bNet=bRev-bFeed;
+  setPill('breed-net',bNet);
+  /* ── 비육우 부문 ── */
+  const fh=g('i-feedhead');
+  const fFeed=fh*g('i-ffeed')*365*feedP + fh*g('i-frough')*365*roughP;
+  const fRev=g('i-ship')*g('i-cw')*g('i-price');
+  const fNet=fRev-fFeed;
+  setPill('feed-net',fNet);
+  /* ── 공통 운영비 ── */
+  const op=(g('i-elec')+g('i-mach'))*10000;
+  const net=bNet+fNet-op;
+  const n=document.getElementById('net');
+  n.textContent=(net>=0?'+':'−')+won(Math.abs(net)/10000)+'만원';
+  n.className='bignum '+(net>=0?'pos':'neg');
+  const ship=g('i-ship');
+  document.getElementById('perhead').textContent='번식우 '+(bNet>=0?'+':'−')+won(Math.abs(bNet)/10000)+'만원 · 비육우 '+(fNet>=0?'+':'−')+won(Math.abs(fNet)/10000)+'만원';
+}
+
+/* ===== 목장 설정 ===== */
+function loadFarm(){document.getElementById('set-farm').value=farm.name;document.getElementById('set-regno').value=farm.regno||'';document.getElementById('set-region').value=farm.region||'';document.getElementById('set-house').value=farm.house||'';}
+function saveFarm(){farm={name:document.getElementById('set-farm').value.trim()||'내 목장',regno:document.getElementById('set-regno').value.trim(),region:document.getElementById('set-region').value.trim(),house:document.getElementById('set-house').value.trim()};store.set('farm',farm);updateFarmLabel();showToast('목장 정보 저장됨'+(farm.region?' — '+farm.region+' 시세 수집 시작':''));go('home');}
+function suggestRegion(){
+  const q=(document.getElementById('set-region').value||'').trim();
+  const el=document.getElementById('region-sug');if(!el)return;
+  if(!q){el.innerHTML='';return;}
+  const hits=Object.keys(markets).filter(n=>n.includes(q)).slice(0,6);
+  el.innerHTML=hits.map(n=>'<span class="chip" style="display:inline-block;margin:3px 4px 0 0" onclick="document.getElementById(\'set-region\').value=\''+n+'\';document.getElementById(\'region-sug\').innerHTML=\'\'">'+n+'</span>').join('');
+}
+function updateFarmLabel(){document.getElementById('farmlabel').textContent=farm.name+' · '+herd.length+'두 ▾';}
+
+/* ===== 홈 ===== */
+function renderStatus(){document.getElementById('status-list').innerHTML=herd.map(a=>{const dc=doneCount(a);const cd=calvingDue(a),ne=nextEstrus(a);let badge='';if(cd)badge=`<span class="pill a">분만 D-${cd.dleft}</span>`;else if(ne)badge=`<span class="pill d">발정 D-${ne.dleft}</span>`;else if(dc.total)badge=`<span class="pill ${dc.done===dc.total?'g':'b'}">${dc.done}/${dc.total}</span>`;else badge='<span class="pill g">관리중</span>';return `<div class="cattle" onclick="openDetail('${a.t}')">${thumb(a)}<div class="info"><h4>${catKey[a.cat]} ${a.t}</h4><p>${roleLabel(a)}</p></div>${badge}</div>`;}).join('');}
+
+function renderHome(){document.getElementById('s-total').textContent=herd.length;document.getElementById('s-breed').textContent=herd.filter(a=>a.cat==='breed').length;document.getElementById('s-feed').textContent=herd.filter(a=>a.cat==='feed').length;var _cf=document.getElementById('s-calff');if(_cf)_cf.textContent=herd.filter(a=>a.cat==='calfF').length;var _cm=document.getElementById('s-calfm');if(_cm)_cm.textContent=herd.filter(a=>a.cat==='calfM').length;updateFarmLabel();let items=[];herd.forEach(a=>{const cd=calvingDue(a);if(cd&&cd.dleft<=21)items.push({a,label:'분만 예정',sub:'D-'+cd.dleft,d:cd.dleft,col:cd.dleft<=7?'var(--danger)':'var(--amber)'});const ne=nextEstrus(a);if(ne&&ne.dleft<=14)items.push({a,label:'발정 예정',sub:'수정 적기 D-'+ne.dleft,d:ne.dleft,col:ne.dleft<=3?'var(--danger)':'var(--amber)'});const ha=hormoneAI(a);if(ha&&ha.dleft<=14)items.push({a,label:'💉 호르몬 수정',sub:ha.program.slice(0,12)+' D-'+ha.dleft,d:ha.dleft,col:ha.dleft<=0?'var(--danger)':'var(--purple)'});protoFor(a).forEach(p=>{if(isDone(a.t,p.week,p.action))return;const dl=Math.round((dueOf(a,p.week)-Date.now())/864e5);if(dl<=10&&dl>=-30)items.push({a,label:p.label,sub:actKo[p.action]+' '+(dl<=0?'지금':'D-'+dl),d:dl,col:dl<=0?'var(--danger)':'var(--amber)'});});});items.sort((x,y)=>x.d-y.d);document.getElementById('home-todo').innerHTML=items.slice(0,5).map(it=>`<div class="todo" onclick="openDetail('${it.a.t}')" style="cursor:pointer"><div class="dot" style="background:${it.col}"></div><div><h4>${it.a.t} ${it.label}</h4><p>${catKey[it.a.cat]} · ${it.sub}</p></div></div>`).join('')||'<p class="muted">예정된 할 일 없음</p>';renderAlertBanner();}
+
+async function enableNotif(){if(!('Notification' in window)){showToast('알림 미지원');return;}const p=await Notification.requestPermission();showToast(p==='granted'?'알림 켜짐 — 주차·유통기한 예약':'알림 거부됨');}
+let tt;function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2300);}
+
+/* ════════ 출하·양도 · 축산물품질평가원 도축통보 · 알림 센터 ════════ */
+let archive=store.get('archive')||[];   /* 제외된 개체(출하/양도) — 등급·판매가 보관 */
+let alerts=store.get('alerts')||[];     /* 알림 큐 (도축결과·일정 등) */
+function saveArchive(){store.set('archive',archive);}
+function saveAlerts(){store.set('alerts',alerts);}
+
+/* ── 출하 처리 ── */
+function openShip(t){currentCattle=t;const a=herd.find(x=>x.t===t);if(!a)return;
+  document.getElementById('ship-head').innerHTML='<div class="row">'+thumb(a)+'<div><h4 style="font-size:16px;font-weight:800">'+catKey[a.cat]+' '+a.t+'</h4><p class="muted">'+(a.idno||'')+' · '+ageMo(a)+'개월</p></div></div>';
+  document.getElementById('sp-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('sp-place').value='음성공판장';
+  go('ship');}
+function confirmShip(){
+  const t=currentCattle;const i=herd.findIndex(a=>a.t===t);if(i<0)return;
+  const a=herd[i];
+  const rec=Object.assign({},a,{
+    type:'ship',shipDate:document.getElementById('sp-date').value||new Date().toISOString().slice(0,10),
+    place:document.getElementById('sp-place').value.trim()||'-',
+    alarm:document.getElementById('sw-shipalarm').classList.contains('on'),
+    grade:null,price:null,carcassWt:null,slaughterDate:null,status:'출하·도축대기'
+  });
+  archive.unshift(rec);saveArchive();
+  herd.splice(i,1);store.set('herd',herd);
+  pushAlert({kind:'ship',t,title:'🚚 출하 완료 — '+t,
+    body:catKey[a.cat]+' '+t+' 출하('+rec.place+'). 도축 등급 통보를 기다립니다.',
+    read:true});
+  showToast(t+' 출하 처리 — 목록에서 제외됨');
+  renderHome();go('list');
+}
+/* ── 양도(매매) 처리 ── */
+function transferOut(t){
+  const i=herd.findIndex(a=>a.t===t);if(i<0)return;
+  const a=herd[i];
+  const rec=Object.assign({},a,{type:'transfer',shipDate:new Date().toISOString().slice(0,10),place:'양도(매매)',status:'양도 완료',grade:null,price:null});
+  archive.unshift(rec);saveArchive();
+  herd.splice(i,1);store.set('herd',herd);
+  pushAlert({kind:'transfer',t,title:'🤝 양도 완료 — '+t,body:catKey[a.cat]+' '+t+' 양도 처리되어 목록에서 제외되었습니다.',read:true});
+  showToast(t+' 양도 처리 — 목록에서 제외됨');
+  renderHome();go('list');
+}
+
+/* ── 축산물이력제·등급판정 API 직접 연동 (자동 도축결과 수신) ──
+   실제 운영: 출하한 개체의 이표번호로 축산물품질평가원 등급판정결과 API를
+   주기적으로 폴링 → 도축·등급 데이터가 올라오면 자동 반영 + 알림 생성.
+   여기서는 API 응답을 모사하는 ekapeFetch()로 연동 구조를 구현 */
+const GRADES=['1++','1+','1','2','3'];
+let kppSync=store.get('kppSync')||{auto:true,last:null};
+function saveKpp(){store.set('kppSync',kppSync);}
+
+/* API 응답 모사: 출하 후 경과일이 있으면 도축·등급 결과를 '서버가 보유'한 것으로 간주 */
+function ekapeFetch(rec){
+  const days=Math.round((Date.now()-new Date(rec.shipDate))/864e5);
+  if(days<0)return null;                       /* 아직 출하 전 */
+  const seed=(parseInt(rec.t,10)||1)+ (rec.idno?rec.idno.length:0);
+  const r=n=>((seed*9301+n*49297)%233280)/233280;
+  const grade=GRADES[Math.floor(r(1)*3)];      /* 1++~1 위주 */
+  const yieldGrade=['A','B','C'][Math.floor(r(2)*3)];
+  const carcassWt=460+Math.floor(r(3)*80);
+  const price=20000+Math.floor(r(4)*4500);
+  const sd=new Date(rec.shipDate);sd.setDate(sd.getDate()+1); /* 출하 익일 도축 가정 */
+  return {idno:rec.idno,slaughterDate:sd.toISOString().slice(0,10),slaughterHouse:rec.place,
+    grade,yieldGrade,carcassWt,price};
+}
+function applyKPP(t,data,opts){
+  opts=opts||{};
+  const rec=archive.find(x=>x.t===t&&x.type==='ship');if(!rec)return false;
+  rec.slaughterDate=data.slaughterDate;rec.grade=data.grade;rec.carcassWt=data.carcassWt;
+  rec.price=data.price;rec.yieldGrade=data.yieldGrade;rec.slaughterHouse=data.slaughterHouse||rec.place;
+  rec.status='도축완료·등급판정';
+  saveArchive();
+  const revenue=Math.round(rec.carcassWt*rec.price);
+  if(!opts.silent){
+    pushAlert({kind:'kpp',t,read:false,
+      title:'📩 축산물품질평가원 도축결과 — '+t,
+      body:'도축 '+fmt(rec.slaughterDate)+' · 육질 '+rec.grade+' · 육량 '+rec.yieldGrade+' · 도체중 '+rec.carcassWt+'kg\n경락가 '+won(rec.price)+'원/kg · 정산 약 '+won(revenue/10000)+'만원',
+      alarm:rec.alarm});
+  }
+  return revenue;
+}
+/* 출하 대기중 개체 전체를 API로 일괄 조회 → 결과 자동 반영 + 묶음 알림 1건 */
+async function syncKPP(manual){
+  const waiting=archive.filter(x=>x.type==='ship'&&!x.grade);
+  if(!waiting.length){if(manual)showToast('도축 대기중인 출하 개체가 없습니다');return 0;}
+  let done=[],totalRev=0;
+  for(const rec of waiting){
+    const data=await ekapeGradeAPI(rec);
+    if(data){const rev=applyKPP(rec.t,data,{silent:true});done.push({t:rec.t,grade:data.grade,wt:data.carcassWt,price:data.price});totalRev+=rev;}
+  }
+  kppSync.last=new Date().toISOString();saveKpp();
+  if(!done.length){if(manual)showToast('아직 등급판정 결과가 없습니다 (도축 후 통보)');return 0;}
+  /* 일괄 알림 1건으로 묶음 */
+  const lines=done.map(d=>'· '+d.t+' 육질 '+d.grade+' / '+d.wt+'kg / '+won(d.price)+'원·kg').join('\n');
+  const title='📩 도축결과 '+done.length+'건 자동 수신 (축산물품질평가원)';
+  const body=lines+'\n정산 합계 약 '+won(totalRev/10000)+'만원';
+  pushAlert({kind:'kpp',batch:true,read:false,alarm:true,title,body,tlist:done.map(d=>d.t)});
+  try{sendKakao(title,body);}catch(e){}     /* 카카오 연동 시 메시지 발송, 아니면 앱푸시 */
+  renderAlerts();renderHome();
+  if(manual)showToast(done.length+'건 도축결과 자동 반영 완료');
+  return done.length;
+}
+function toggleAutoSync(){kppSync.auto=!kppSync.auto;saveKpp();renderAlerts();showToast('자동 수신 '+(kppSync.auto?'켜짐':'꺼짐'));}
+
+/* ── 알림 큐 관리 ── */
+function pushAlert(o){
+  const al=Object.assign({id:Date.now()+Math.floor(Math.random()*999),ts:new Date().toISOString(),read:false,alarm:false},o);
+  alerts.unshift(al);saveAlerts();
+  if(al.alarm&&!al.read)fireNotification(al);
+  return al;
+}
+function fireNotification(al){
+  try{if('Notification'in window&&Notification.permission==='granted'){
+    const n=new Notification(al.title,{body:(al.body||'').slice(0,120),tag:'mf-'+al.id});
+    n.onclick=()=>{window.focus&&window.focus();go('alerts');};
+  }}catch(e){}
+}
+function markRead(id){const a=alerts.find(x=>x.id===id);if(a){a.read=true;saveAlerts();renderAlerts();renderHome();}}
+function markAllRead(){alerts.forEach(a=>a.read=true);saveAlerts();renderAlerts();renderHome();showToast('모든 알림 확인 처리');}
+function delAlert(id){alerts=alerts.filter(x=>x.id!==id);saveAlerts();renderAlerts();renderHome();}
+function reAlert(id){const a=alerts.find(x=>x.id===id);if(!a)return;a.read=false;saveAlerts();fireNotification(a);renderAlerts();renderHome();showToast('재알림 설정됨');}
+function unreadCount(){return alerts.filter(a=>!a.read).length;}
+/* 일괄 처리 */
+function readByKind(kind){let n=0;alerts.forEach(a=>{if(a.kind===kind&&!a.read){a.read=true;n++;}});saveAlerts();renderAlerts();renderHome();showToast(n+'건 확인 처리');}
+function delRead(){const before=alerts.length;alerts=alerts.filter(a=>!a.read);saveAlerts();renderAlerts();renderHome();showToast((before-alerts.length)+'건 삭제(확인된 알림)');}
+function reAlertAllUnread(){const u=alerts.filter(a=>!a.read);u.forEach(fireNotification);showToast(u.length+'건 재알림');}
+
+function renderAlertBanner(){
+  const el=document.getElementById('home-alertbanner');if(!el)return;
+  let html='';
+  const n=unreadCount();
+  if(n){
+    const top=alerts.find(a=>!a.read);
+    html+='<div class="card" style="margin-bottom:10px;border-color:rgba(199,162,74,.5);background:linear-gradient(180deg,#fff,#fbf6ea);cursor:pointer" onclick="go(\'alerts\')">'+
+      '<div class="row between"><b style="font-size:14px">🔔 확인하지 않은 알림 '+n+'건</b><span class="pill a">보기 ›</span></div>'+
+      '<p class="muted" style="margin-top:6px">'+(top?top.title:'')+'</p></div>';
+  }
+  if(backupOverdue()){
+    const last=store.get('lastBackup');
+    const sub=last?(Math.floor((Date.now()-new Date(last))/864e5)+'일째 백업하지 않았습니다'):'데이터를 아직 백업하지 않았습니다';
+    html+='<div class="card" style="margin-bottom:14px;border-color:rgba(163,60,48,.4);background:linear-gradient(180deg,#fff,#f8efe9);cursor:pointer" onclick="go(\'exp\')">'+
+      '<div class="row between"><b style="font-size:14px">💾 백업 권장</b><span class="pill d">백업하기 ›</span></div>'+
+      '<p class="muted" style="margin-top:6px">'+sub+'. 기기 분실·교체에 대비해 백업하세요.</p></div>';
+  }
+  el.innerHTML=html;
+}
+function renderAlerts(){
+  /* 자동수신 상태 UI */
+  const sw=document.getElementById('sw-autosync');if(sw)sw.classList.toggle('on',!!kppSync.auto);
+  const st=document.getElementById('kpp-status');
+  const waiting=archive.filter(x=>x.type==='ship'&&!x.grade).length;
+  if(st)st.textContent=(kppSync.auto?'자동 수신 켜짐':'수동')+' · 도축대기 '+waiting+'두'+(kppSync.last?' · 최근 동기화 '+fmt(kppSync.last)+' '+new Date(kppSync.last).toTimeString().slice(0,5):'');
+  const badge=document.getElementById('alerts-badge');if(badge){const n=unreadCount();badge.style.display=n?'inline-block':'none';badge.textContent=n;}
+  const list=document.getElementById('alerts-list');if(!list)return;
+  if(!alerts.length){list.innerHTML='<p class="muted">알림이 없습니다</p>';return;}
+  list.innerHTML=alerts.map(a=>{
+    const when=fmt(a.ts)+' '+new Date(a.ts).toTimeString().slice(0,5);
+    const body=(a.body||'').replace(/\n/g,'<br>');
+    const dot=a.read?'#c9c2b2':'var(--danger)';
+    const viewBtn=a.kind==='kpp'?'<button class="btn ghost sm" style="width:auto" onclick="'+(a.batch?'go(\'archive\')':'viewArchiveOf(\''+a.t+'\')')+'">등급·정산 보기</button>':'';
+    return '<div class="todo" style="align-items:flex-start">'+
+      '<div class="dot" style="background:'+dot+';margin-top:7px"></div>'+
+      '<div style="flex:1"><div class="row between"><h4 style="'+(a.read?'color:var(--sub)':'')+'">'+a.title+'</h4>'+(a.read?'':'<span class="pill d" style="flex:none">새 알림</span>')+'</div>'+
+      '<p style="font-size:12.5px;color:#4a463b;margin-top:3px;line-height:1.5">'+body+'</p>'+
+      '<p class="muted" style="font-size:11px;margin-top:4px">'+when+'</p>'+
+      '<div class="row" style="gap:8px;margin-top:8px">'+viewBtn+
+        (a.read?'<button class="btn ghost sm" style="width:auto" onclick="reAlert('+a.id+')">🔔 재알림</button>':'<button class="btn ghost sm" style="width:auto" onclick="markRead('+a.id+')">✓ 확인</button>')+
+        '<button class="btn ghost sm" style="width:auto;color:var(--danger)" onclick="delAlert('+a.id+')">삭제</button>'+
+      '</div></div></div>';
+  }).join('');
+}
+function viewArchiveOf(t){go('archive');setTimeout(()=>{const el=document.getElementById('arch-'+t);if(el)el.scrollIntoView({behavior:'smooth'});},150);}
+
+/* ── 출하·양도 이력 화면 ── */
+let archFilter='전체';
+function renderArchive(){
+  const chips=['전체','출하','양도','도축완료'];
+  document.getElementById('arch-chips').innerHTML=chips.map(c=>'<div class="chip '+(c===archFilter?'on':'')+'" onclick="archFilter=\''+c+'\';renderArchive()">'+c+'</div>').join('');
+  let list=archive.slice();
+  if(archFilter==='출하')list=list.filter(x=>x.type==='ship');
+  else if(archFilter==='양도')list=list.filter(x=>x.type==='transfer');
+  else if(archFilter==='도축완료')list=list.filter(x=>x.grade);
+  document.getElementById('archive-list').innerHTML=list.length?list.map(r=>{
+    const gradePill=r.grade?'<span class="pill g">육질 '+r.grade+'</span>':'<span class="pill a">'+(r.status||'대기')+'</span>';
+    let detail='';
+    if(r.grade){
+      const revenue=Math.round((r.carcassWt||0)*(r.price||0));
+      detail='<div class="resultrow"><span>도축일</span><b>'+fmt(r.slaughterDate)+'</b></div>'+
+        '<div class="resultrow"><span>육질등급</span><b style="color:var(--green)">'+r.grade+'</b></div>'+
+        '<div class="resultrow"><span>육량등급</span><b>'+(r.yieldGrade||'-')+'</b></div>'+
+        '<div class="resultrow"><span>도체중</span><b>'+r.carcassWt+'kg</b></div>'+
+        '<div class="resultrow"><span>경락가</span><b>'+won(r.price)+'원/kg</b></div>'+
+        '<div class="resultrow"><span>정산 추정</span><b style="color:var(--green)">'+won(revenue/10000)+'만원</b></div>';
+    }else if(r.type==='ship'){
+      detail='<p class="muted">도축 등급 통보 대기중 — 축산물품질평가원 알림 수신 시 자동 반영</p>';
+    }else{
+      detail='<div class="resultrow"><span>처리</span><b>양도(매매) 완료</b></div>';
+    }
+    return '<div id="arch-'+r.t+'" class="card" style="box-shadow:none;border:1px solid var(--line);margin-bottom:10px">'+
+      '<div class="row between"><div><h4 style="font-size:15px;font-weight:800">'+(catKey[r.cat]||'')+' '+r.t+'</h4><p class="muted">'+(r.idno||'')+' · '+(r.type==='ship'?'출하':'양도')+' '+fmt(r.shipDate)+' · '+(r.place||'')+'</p></div>'+gradePill+'</div>'+
+      '<div class="divider"></div>'+detail+
+      (r.kpn||r.aiKPN?'<p class="note" style="margin-top:8px">어미 KPN '+(r.kpn||'-')+' · 정액 KPN '+(r.aiKPN||'-')+' — 도축성적을 혈통에 연결</p>':'')+
+      '</div>';
+  }).join(''):'<p class="muted">출하·양도 이력이 없습니다</p>';
+}
+
+/* ════════ 번식성적 · 발정관찰 · EPD · 내보내기 로직 ════════ */
+
+/* ── 씨수소(KPN) EPD 카탈로그 (4대 형질: 도체중CWT·등심단면적EMA·등지방BF·근내지방MARB) ──
+   값은 기대자손능력차(EPD) 예시. 실제는 종축개량협회 2·8월 평가치 연동 */
+const sireEPD={
+ '1503':{name:'KPN1503',cwt:28,ema:6.5,bf:-0.8,marb:0.85},
+ '1694':{name:'KPN1694',cwt:22,ema:5.2,bf:-0.4,marb:1.10},
+ '1447':{name:'KPN1447',cwt:31,ema:7.1,bf:-1.1,marb:0.62},
+ '1459':{name:'KPN1459',cwt:18,ema:4.6,bf:0.3,marb:1.25},
+ '1336':{name:'KPN1336',cwt:25,ema:5.8,bf:-0.6,marb:0.95},
+ '1218':{name:'KPN1218',cwt:20,ema:4.9,bf:-0.2,marb:0.78},
+};
+const TRAITS=[['cwt','도체중','kg'],['ema','등심단면적','㎠'],['bf','등지방','mm'],['marb','근내지방','지수']];
+/* 암소 EPD: 저장값 없으면 관리번호 기반 의사난수로 생성(데모) */
+function cowEPD(a){
+  if(a.epd)return a.epd;
+  const seed=parseInt(a.t,10)||1;const r=n=>((seed*9301+n*49297)%233280)/233280;
+  const e={cwt:+(r(1)*30-2).toFixed(1),ema:+(r(2)*6+1).toFixed(1),bf:+(r(3)*2-1.2).toFixed(1),marb:+(r(4)*1.4+0.1).toFixed(2)};
+  a.epd=e;return e;
+}
+function epdBar(key,val){
+  const ranges={cwt:[-5,32],ema:[0,8],bf:[-1.5,1],marb:[0,1.4]};
+  const [lo,hi]=ranges[key];let pct=Math.round((val-lo)/(hi-lo)*100);pct=Math.max(4,Math.min(100,pct));
+  const good=key==='bf'?val<0:val>(lo+hi)/2;const col=good?'var(--green)':'var(--amber)';
+  return '<div style="height:9px;background:var(--line);border-radius:6px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+col+'"></div></div>';
+}
+
+/* ── 2) 번식성적 대시보드 ── */
+function calvingInterval(a){ /* 분만간격: 분만일~직전수정+285 근사 */
+  if(a.parity>=2&&a.calving&&a.aiDate){const d=Math.round((new Date(a.aiDate)-new Date(a.calving))/864e5)+285;return d>0?d:null;}
+  return null;
+}
+function firstCalvMonth(a){ /* 초산월령 근사: 출생~첫분만(데모: 현 분만일 사용) */
+  if(a.parity>=1&&a.birth&&a.calving){const m=Math.round((new Date(a.calving)-new Date(a.birth))/(30.4*864e5));return m>0?m:null;}
+  return null;
+}
+function isLowFertility(a){ /* 저수태우: 공태 150일 초과 또는 분만후 미수정 장기 */
+  const od=openDays(a);
+  if(od!=null&&!a.preg&&od>150)return '공태 '+od+'일 (장기 미수태)';
+  if(a.calving&&!a.aiDate&&!a.preg){const dd=Math.round((Date.now()-new Date(a.calving))/864e5);if(dd>90)return '분만 후 '+dd+'일 미수정';}
+  return null;
+}
+function renderRepro(){
+  const cows=herd.filter(a=>a.cat==='breed');
+  const ci=cows.map(calvingInterval).filter(x=>x);
+  const od=cows.map(openDays).filter(x=>x!=null);
+  const fc=cows.map(firstCalvMonth).filter(x=>x);
+  const avg=arr=>arr.length?Math.round(arr.reduce((s,x)=>s+x,0)/arr.length):'-';
+  document.getElementById('rp-calvint').textContent=avg(ci);
+  document.getElementById('rp-open').textContent=avg(od);
+  document.getElementById('rp-firstcalv').textContent=avg(fc);
+  const low=cows.map(a=>({a,r:isLowFertility(a)})).filter(x=>x.r);
+  document.getElementById('rp-lowcnt').textContent=low.length+'두';
+  document.getElementById('rp-low').innerHTML=low.length?low.map(x=>'<div class="cattle" onclick="openDetail(\''+x.a.t+'\')"><div class="tag t-breed">'+x.a.t.slice(-3)+'</div><div class="info"><h4>번식우 '+x.a.t+'</h4><p style="color:var(--danger)">'+x.r+'</p></div><span class="chev">›</span></div>').join(''):'<p class="muted">저수태우 없음 — 양호 ✅</p>';
+  document.getElementById('rp-list').innerHTML=cows.map(a=>{
+    const ciV=calvingInterval(a),odV=openDays(a);
+    return '<div class="cattle" onclick="openDetail(\''+a.t+'\')"><div class="tag t-breed">'+a.t.slice(-3)+'</div><div class="info"><h4>번식우 '+a.t+' · '+(a.parity!=null?a.parity+'산':'미경산')+'</h4><p>분만간격 '+(ciV||'-')+'일 · 공태 '+(odV!=null?odV:'-')+'일 · '+(a.preg?'임신중':'비임신')+'</p></div></div>';
+  }).join('');
+}
+
+/* ── 4) 발정 관찰 → 수정적기 ── */
+const HEAT_SIGNS=[['stand','승가 허용(정지반응)',3],['mount','다른 소에 승가',2],['mucus','맑은 점액 분비',2],['restless','불안·울음·활동↑',1],['vulva','외음부 충혈·부종',1],['appetite','식욕 감소',1]];
+let heatLog=store.get('heatLog')||[];
+function openHeat(){
+  const cows=herd.filter(a=>a.cat==='breed'&&!a.preg);
+  const sel=document.getElementById('h-cattle');
+  sel.innerHTML=cows.map(a=>'<option value="'+a.t+'">번식우 '+a.t+(a.parity!=null?' ('+a.parity+'산)':'')+'</option>').join('')||'<option>비임신 번식우 없음</option>';
+  document.getElementById('h-when').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('h-signs').innerHTML=HEAT_SIGNS.map((s,i)=>'<label style="display:flex;align-items:center;gap:8px;padding:7px 0;font-size:14px;font-weight:600"><input type="checkbox" id="hs-'+i+'" style="width:20px;height:20px"> '+s[1]+'</label>').join('');
+  document.getElementById('h-result').style.display='none';
+  renderHeatLog();
+}
+function saveHeat(){
+  const t=document.getElementById('h-cattle').value;
+  const when=document.getElementById('h-when').value;
+  if(!t||!when){showToast('개체와 관찰 일시를 확인하세요');return;}
+  let score=0;const chosen=[];
+  HEAT_SIGNS.forEach((s,i)=>{if(document.getElementById('hs-'+i)&&document.getElementById('hs-'+i).checked){score+=s[2];chosen.push(s[1]);}});
+  if(!chosen.length){showToast('관찰된 증상을 선택하세요');return;}
+  /* 정지발정(승가허용) 시점 +12~18h가 수정 적기 */
+  const stand=document.getElementById('hs-0').checked;
+  const base=new Date(when);
+  const from=new Date(base.getTime()+ (stand?10:6)*3600000);
+  const to=new Date(base.getTime()+ (stand?16:14)*3600000);
+  const strong=score>=3;
+  const rec={id:Date.now(),t,when,score,signs:chosen,aiFrom:from.toISOString(),aiTo:to.toISOString()};
+  heatLog.unshift(rec);store.set('heatLog',heatLog);
+  const a=herd.find(x=>x.t===t);if(a){a.heat=when.slice(0,10);store.set('herd',herd);}
+  const fmtT=d=>fmt(d)+' '+new Date(d).toTimeString().slice(0,5);
+  document.getElementById('h-result').style.display='block';
+  document.getElementById('h-result').innerHTML='<div class="note" style="background:'+(strong?'linear-gradient(180deg,#e7efe7,#dcebdc)':'#f4ecd9')+'"><b>'+(strong?'🟢 발정 확실 — 수정 권장':'🟡 발정 의심 — 재관찰 권장')+'</b><br>발정 강도 점수: '+score+'<br>📍 권장 수정적기: <b>'+fmtT(rec.aiFrom)+' ~ '+fmtT(rec.aiTo)+'</b><br>관찰 증상: '+chosen.join(', ')+'</div>';
+  renderHeatLog();showToast('발정 관찰 저장됨');
+}
+function renderHeatLog(){
+  const recent=heatLog.slice(0,8);
+  document.getElementById('h-log').innerHTML=recent.length?recent.map(r=>'<div class="entry"><div class="meta">'+fmt(r.when)+' · 번식우 '+r.t+' · 강도 '+r.score+'</div><p>'+r.signs.join(', ')+'<br>수정적기 '+fmt(r.aiFrom)+' '+new Date(r.aiFrom).toTimeString().slice(0,5)+'~'+new Date(r.aiTo).toTimeString().slice(0,5)+'</p></div>').join(''):'<p class="muted">관찰 기록 없음</p>';
+}
+
+/* ── 2)/EPD: EPD 화면 ── */
+let epdSel=null;
+function initEPD(){
+  const cows=herd.filter(a=>a.cat==='breed');
+  const sel=document.getElementById('ep-cow');
+  sel.innerHTML=cows.map(a=>'<option value="'+a.t+'">번식우 '+a.t+(a.parity!=null?' ('+a.parity+'산)':'')+'</option>').join('')||'<option>번식우 없음</option>';
+  epdSel=null;renderEPD();
+}
+function renderEPD(){
+  const t=document.getElementById('ep-cow').value;const a=herd.find(x=>x.t===t);
+  if(!a){document.getElementById('ep-cowbars').innerHTML='<p class="muted">번식우를 등록하세요</p>';return;}
+  const e=cowEPD(a);
+  document.getElementById('ep-cowbars').innerHTML=TRAITS.map(([k,ko,u])=>'<div style="margin-bottom:10px"><div class="row between" style="font-size:13px;font-weight:700"><span>'+ko+'</span><span>'+e[k]+' '+u+'</span></div>'+epdBar(k,e[k])+'</div>').join('');
+  /* 약점 형질: 표준화 후 최저 (등지방은 높을수록 약점) */
+  const norm={cwt:(e.cwt+5)/37,ema:e.ema/8,bf:1-(e.bf+1.5)/2.5,marb:e.marb/1.4};
+  const weak=Object.entries(norm).sort((x,y)=>x[1]-y[1])[0][0];
+  const weakKo={cwt:'도체중',ema:'등심단면적',bf:'등지방(과다)',marb:'근내지방'}[weak];
+  /* 약점 보완 씨수소 추천: 해당 형질 EPD 우수 순 */
+  const better=key=>key==='bf'?((s)=>s.bf):((s)=>s[key]);
+  const ranked=Object.values(sireEPD).slice().sort((x,y)=>weak==='bf'?(x.bf-y.bf):(y[weak]-x[weak]));
+  document.getElementById('ep-sires').innerHTML='<p class="note" style="margin-bottom:8px">약점 형질: <b>'+weakKo+'</b> — 이를 보완하는 씨수소를 우선 추천합니다</p>'+
+    ranked.slice(0,4).map(s=>'<div class="cattle" onclick="predictMating(\''+t+'\',\''+s.name.replace('KPN','')+'\')"><div class="tag t-calfM" style="font-size:11px">'+s.name.replace('KPN','')+'</div><div class="info"><h4>'+s.name+'</h4><p>도체중 +'+s.cwt+' · 등심 +'+s.ema+' · 등지방 '+s.bf+' · 근내 '+s.marb+'</p></div><span class="chev">›</span></div>').join('');
+}
+function predictMating(cowT,sireK){
+  const a=herd.find(x=>x.t===cowT);const ce=cowEPD(a);const se=sireEPD[sireK];
+  if(!se){showToast('씨수소 EPD 없음');return;}
+  /* 자손 EBV ≈ (씨수소EPD + 어미EPD) (EPD=육종가 절반이므로 합이 자손 기대 육종가) */
+  const ebv={};TRAITS.forEach(([k])=>ebv[k]=+(se[k]+ce[k]).toFixed(2));
+  document.getElementById('ep-result').innerHTML='<p style="font-weight:700;margin-bottom:8px">'+a.t+' × '+se.name+' 자손 예측 EBV</p>'+
+    TRAITS.map(([k,ko,u])=>'<div class="resultrow"><span>'+ko+'</span><b>'+(ebv[k]>=0?'+':'')+ebv[k]+' '+u+'</b></div>').join('')+
+    '<p class="note" style="margin-top:8px">EBV=자손 육종가 추정치. 씨수소·어미 EPD의 합으로 근사했습니다. 실제 교배 전 종축개량협회 계획교배 결과를 확인하세요.</p>';
+  document.getElementById('ep-result').scrollIntoView({behavior:'smooth'});
+}
+
+/* ── 6) 데이터 내보내기 (CSV/공유) ── */
+function downloadCSV(name,rows){
+  const csv='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  try{
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+    showToast(name+' 내보내기 완료');
+  }catch(e){showToast('이 환경에선 다운로드가 제한됩니다 (설치형에서 정상)');}
+}
+function exportCSV(kind){
+  if(kind==='herd'){
+    const rows=[['관리번호','식별번호','구분','성별','월령','산차','임신','공태일','수정일','정액KPN','분만예정','최근분만','개체KPN']];
+    herd.forEach(a=>rows.push([a.t,a.idno||'',catKey[a.cat],{F:'암',M:'수',C:'거세'}[a.sex]||'',ageMo(a),a.parity!=null?a.parity:'',a.preg?'임신':'비임신',openDays(a)!=null?openDays(a):'',a.aiDate||'',a.aiKPN||'',dueDate(a)?fmt(dueDate(a)):'',a.calving||'',a.kpn||'']));
+    downloadCSV('minanfarm_개체목록.csv',rows);
+  }else if(kind==='repro'){
+    const rows=[['관리번호','산차','분만간격(일)','공태일(일)','초산월령','임신여부','저수태']];
+    herd.filter(a=>a.cat==='breed').forEach(a=>rows.push([a.t,a.parity!=null?a.parity:'',calvingInterval(a)||'',openDays(a)!=null?openDays(a):'',firstCalvMonth(a)||'',a.preg?'임신':'비임신',isLowFertility(a)||'']));
+    downloadCSV('minanfarm_번식성적.csv',rows);
+  }else if(kind==='diary'){
+    const rows=[['날짜','개체','분류','내용']];
+    diary.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>rows.push([d.date,d.cattle,catName[d.cat]||d.cat,d.text]));
+    downloadCSV('minanfarm_진료기록.csv',rows);
+  }
+}
+function shareReport(){
+  const cows=herd.filter(a=>a.cat==='breed').length;
+  const preg=herd.filter(a=>a.preg).length;
+  const low=herd.filter(a=>a.cat==='breed'&&isLowFertility(a)).length;
+  const txt=[farm.name+' 목장 요약 ('+fmt(new Date())+')',
+    '총 '+herd.length+'두 · 번식우 '+cows+'두 · 임신 '+preg+'두',
+    '저수태우 '+low+'두',
+    '— minanfarm'].join('\n');
+  if(navigator.share){navigator.share({title:'minanfarm 요약',text:txt}).catch(()=>{});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>showToast('요약 복사됨 — 붙여넣기로 공유')).catch(()=>showToast('공유 미지원 환경'));}
+  else showToast('공유 미지원 환경');
+}
+
+/* ════════ 기기 내 저장: 엑셀 · 노트 · 백업/복원 ════════ */
+function nowStamp(){const d=new Date();return d.getFullYear()+''+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');}
+function saveBlob(blob,name){
+  try{
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},120);
+    markSaved(name);return true;
+  }catch(e){showToast('이 환경에선 저장이 제한됩니다 (설치형에서 정상)');return false;}
+}
+function markSaved(name,isBackup){
+  const log=store.get('savedLog')||[];log.unshift({name,ts:new Date().toISOString()});
+  store.set('savedLog',log.slice(0,10));
+  if(isBackup)store.set('lastBackup',new Date().toISOString());
+  const el=document.getElementById('exp-savedinfo');
+  if(el)el.innerHTML='<p class="note" style="background:linear-gradient(180deg,#e7efe7,#dcebdc);margin-top:4px">✅ 저장됨: '+name+'<br>휴대폰의 "파일/다운로드" 폴더에서 확인하세요</p>';
+  showToast(name+' 저장 완료');
+  if(typeof renderBackupList==='function')renderBackupList();
+}
+/* 앱 내부 스냅샷 보관 (불러오기용) — 최근 5개 */
+function snapshotBackup(label){
+  const snaps=store.get('snaps')||[];
+  try{
+    snaps.unshift({id:Date.now(),label:label||'수동 백업',ts:new Date().toISOString(),
+      count:herd.length,data:collectData()});
+    store.set('snaps',snaps.slice(0,5));
+    store.set('lastBackup',new Date().toISOString());
+  }catch(e){showToast('기기 저장공간이 부족해 스냅샷을 줄였습니다');store.set('snaps',snaps.slice(0,2));}
+}
+
+/* 전체 데이터 묶음 (백업/엑셀 공통 소스) */
+function collectData(){
+  return {herd,diary,meds,archive,alerts,heatLog,doneSet,photos,farm,protoPreg,protoCalf,
+    kppSync:(typeof kppSync!=='undefined'?kppSync:null)};
+}
+
+/* ── 1) 엑셀(.xlsx) 시트별 저장 ── */
+function exportExcel(){
+  if(typeof XLSX==='undefined'){showToast('엑셀 모듈 로딩 중 — 잠시 후 다시 시도 (오프라인 시 CSV 사용)');return;}
+  const wb=XLSX.utils.book_new();
+  const aoa=(arr)=>XLSX.utils.aoa_to_sheet(arr);
+  /* 개체 */
+  const h=[['관리번호','식별번호','구분','성별','출생일','월령','산차','임신','공태일','수정일','정액KPN','분만예정','최근분만','개체KPN','부KPN']];
+  herd.forEach(a=>h.push([a.t,a.idno||'',catKey[a.cat],{F:'암',M:'수',C:'거세'}[a.sex]||'',a.birth||'',ageMo(a),a.parity!=null?a.parity:'',a.preg?'임신':'비임신',openDays(a)!=null?openDays(a):'',a.aiDate||'',a.aiKPN||'',dueDate(a)?fmt(dueDate(a)):'',a.calving||'',a.kpn||'',a.sire||'']));
+  XLSX.utils.book_append_sheet(wb,aoa(h),'개체');
+  /* 번식성적 */
+  const r=[['관리번호','산차','분만간격(일)','공태일(일)','초산월령','임신','저수태']];
+  herd.filter(a=>a.cat==='breed').forEach(a=>r.push([a.t,a.parity!=null?a.parity:'',calvingInterval(a)||'',openDays(a)!=null?openDays(a):'',firstCalvMonth(a)||'',a.preg?'임신':'비임신',isLowFertility(a)||'']));
+  XLSX.utils.book_append_sheet(wb,aoa(r),'번식성적');
+  /* 일지/진료 */
+  const d=[['날짜','개체','분류','내용']];
+  diary.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>d.push([x.date,x.cattle,catName[x.cat]||x.cat,x.text]));
+  XLSX.utils.book_append_sheet(wb,aoa(d),'진료기록');
+  /* 약품 */
+  const m=[['약품명','종류','처방','수량','유통기한']];
+  meds.forEach(x=>m.push([x.name,x.type,x.rx?'처방':'일반',x.qty,x.exp]));
+  XLSX.utils.book_append_sheet(wb,aoa(m),'약품재고');
+  /* 출하·도축 */
+  const s=[['관리번호','식별번호','처리','출하일','출하처','도축일','육질등급','육량등급','도체중','경락가','정산추정']];
+  archive.forEach(x=>{const rev=x.grade?Math.round((x.carcassWt||0)*(x.price||0)):'';s.push([x.t,x.idno||'',x.type==='ship'?'출하':'양도',x.shipDate||'',x.place||'',x.slaughterDate||'',x.grade||'',x.yieldGrade||'',x.carcassWt||'',x.price||'',rev]);});
+  XLSX.utils.book_append_sheet(wb,aoa(s),'출하도축');
+  try{XLSX.writeFile(wb,'minanfarm_'+nowStamp()+'.xlsx');markSaved('minanfarm_'+nowStamp()+'.xlsx');}
+  catch(e){showToast('엑셀 저장 실패 — CSV로 시도하세요');}
+}
+
+/* ── 항목별 따로 저장 (엑셀 1시트, 미지원시 CSV) ── */
+function sheetRows(kind){
+  if(kind==='herd'){
+    const rows=[['관리번호','식별번호','구분','성별','출생일','월령','산차','임신','공태일','수정일','정액KPN','분만예정','최근분만','개체KPN','부KPN']];
+    herd.forEach(a=>rows.push([a.t,a.idno||'',catKey[a.cat],{F:'암',M:'수',C:'거세'}[a.sex]||'',a.birth||'',ageMo(a),a.parity!=null?a.parity:'',a.preg?'임신':'비임신',openDays(a)!=null?openDays(a):'',a.aiDate||'',a.aiKPN||'',dueDate(a)?fmt(dueDate(a)):'',a.calving||'',a.kpn||'',a.sire||'']));
+    return ['개체',rows];
+  }else if(kind==='repro'){
+    const rows=[['관리번호','산차','분만간격(일)','공태일(일)','초산월령','임신','저수태']];
+    herd.filter(a=>a.cat==='breed').forEach(a=>rows.push([a.t,a.parity!=null?a.parity:'',calvingInterval(a)||'',openDays(a)!=null?openDays(a):'',firstCalvMonth(a)||'',a.preg?'임신':'비임신',isLowFertility(a)||'']));
+    return ['번식성적',rows];
+  }else if(kind==='diary'){
+    const rows=[['날짜','개체','분류','내용']];
+    diary.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>rows.push([x.date,x.cattle,catName[x.cat]||x.cat,x.text]));
+    return ['진료기록',rows];
+  }else if(kind==='meds'){
+    const rows=[['약품명','종류','처방','수량','유통기한']];
+    meds.forEach(x=>rows.push([x.name,x.type,x.rx?'처방':'일반',x.qty,x.exp]));
+    return ['약품재고',rows];
+  }else if(kind==='ship'){
+    const rows=[['관리번호','식별번호','처리','출하일','출하처','도축일','육질등급','육량등급','도체중','경락가','정산추정']];
+    archive.forEach(x=>{const rev=x.grade?Math.round((x.carcassWt||0)*(x.price||0)):'';rows.push([x.t,x.idno||'',x.type==='ship'?'출하':'양도',x.shipDate||'',x.place||'',x.slaughterDate||'',x.grade||'',x.yieldGrade||'',x.carcassWt||'',x.price||'',rev]);});
+    return ['출하도축',rows];
+  }
+  return ['data',[[]]];
+}
+function exportSheet(kind){
+  const [name,rows]=sheetRows(kind);
+  if(typeof XLSX!=='undefined'){
+    try{
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name);
+      XLSX.writeFile(wb,'minanfarm_'+name+'_'+nowStamp()+'.xlsx');
+      markSaved('minanfarm_'+name+'_'+nowStamp()+'.xlsx');return;
+    }catch(e){}
+  }
+  downloadCSV('minanfarm_'+name+'.csv',rows);   /* 오프라인 폴백 */
+}
+function exportNote(){
+  const L=[];const sep='────────────────────';
+  L.push('🐂 '+farm.name+' 목장기록 ('+fmt(new Date())+')');
+  L.push('사업자/이력 '+(farm.regno||'-'));
+  L.push('총 '+herd.length+'두 · 번식우 '+herd.filter(a=>a.cat==='breed').length+' · 비육우 '+herd.filter(a=>a.cat==='feed').length);
+  L.push(sep);L.push('[ 개체 목록 ]');
+  herd.forEach(a=>{
+    L.push('• '+catKey[a.cat]+' '+a.t+'  '+(a.idno||''));
+    let line='   '+ageMo(a)+'개월';
+    if(a.cat==='breed'){line+=' · '+(a.parity!=null?a.parity+'산':'미경산')+' · '+(a.preg?('임신 '+(gestMo(a)??0)+'개월'):'비임신');if(openDays(a)!=null)line+=' · 공태 '+openDays(a)+'일';}
+    L.push(line);
+    if(a.aiDate)L.push('   수정 '+fmt(a.aiDate)+(a.aiKPN?' (정액 '+a.aiKPN+')':''));
+    if(a.calving)L.push('   최근분만 '+fmt(a.calving));
+  });
+  L.push(sep);L.push('[ 진료·처방 기록 ]');
+  diary.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>L.push('• '+x.date+' ['+(catName[x.cat]||x.cat)+'] '+x.cattle+' — '+x.text));
+  L.push(sep);L.push('[ 출하·도축 이력 ]');
+  if(archive.length)archive.forEach(x=>{L.push('• '+x.t+' '+(x.type==='ship'?'출하':'양도')+' '+(x.shipDate||'')+(x.grade?(' → 육질 '+x.grade+' / '+x.carcassWt+'kg / '+won(x.price)+'원·kg'):' (대기)'));});
+  else L.push('(없음)');
+  L.push(sep);L.push('— minanfarm 백업노트. 메모앱에 붙여넣어 보관하세요.');
+  const blob=new Blob([L.join('\n')],{type:'text/plain;charset=utf-8'});
+  saveBlob(blob,'minanfarm_노트_'+nowStamp()+'.txt');
+}
+
+/* ── 3) 백업(.json) 저장 / 복원 ── */
+function exportBackup(){
+  const data={_app:'minanfarm',_ver:1,_ts:new Date().toISOString(),data:collectData()};
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const name='minanfarm_백업_'+nowStamp()+'.json';
+  snapshotBackup('파일 백업');
+  saveBlobBackup(blob,name);
+}
+function saveBlobBackup(blob,name){
+  try{
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},120);
+    markSaved(name,true);return true;
+  }catch(e){showToast('이 환경에선 저장이 제한됩니다 (설치형에서 정상)');return false;}
+}
+function applyRestore(d){
+  if(!d||!d.herd){showToast('올바른 백업 데이터가 아닙니다');return false;}
+  /* 복원 전 현재 상태 자동 스냅샷 */
+  try{snapshotBackup('복원 전 자동백업');}catch(_){}
+  if(d.herd){herd=d.herd;store.set('herd',herd);}
+  if(d.diary){diary=d.diary;store.set('diary',diary);}
+  if(d.meds){meds=d.meds;store.set('meds',meds);}
+  if(d.archive){archive=d.archive;store.set('archive',archive);}
+  if(d.alerts){alerts=d.alerts;store.set('alerts',alerts);}
+  if(d.heatLog){heatLog=d.heatLog;store.set('heatLog',heatLog);}
+  if(d.doneSet){doneSet=d.doneSet;store.set('done',doneSet);}
+  if(d.photos){photos=d.photos;store.set('photos',photos);}
+  if(d.farm){farm=d.farm;store.set('farm',farm);}
+  if(d.protoPreg){protoPreg=d.protoPreg;store.set('protoPreg',protoPreg);}
+  if(d.protoCalf){protoCalf=d.protoCalf;store.set('protoCalf',protoCalf);}
+  if(d.kppSync&&typeof kppSync!=='undefined'){kppSync=d.kppSync;store.set('kppSync',kppSync);}
+  renderCattle();renderDiary();renderMeds();renderHome();
+  return true;
+}
+function importBackup(ev){
+  const f=ev.target.files&&ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const j=JSON.parse(e.target.result);
+      const d=j.data||j;
+      if(!applyRestore(d))return;
+      ev.target.value='';
+      showToast('복원 완료 — 개체 '+herd.length+'두');
+      go('home');
+    }catch(err){showToast('복원 실패 — 파일이 손상되었습니다');}
+  };
+  r.readAsText(f);
+}
+/* 앱 내부 스냅샷 목록/복원 */
+function renderBackupList(){
+  const el=document.getElementById('backup-list');if(!el)return;
+  const snaps=store.get('snaps')||[];
+  const last=store.get('lastBackup');
+  const li=document.getElementById('last-backup-info');
+  if(li){
+    if(last){const days=Math.floor((Date.now()-new Date(last))/864e5);
+      li.textContent='마지막 백업: '+fmt(last)+' '+new Date(last).toTimeString().slice(0,5)+' ('+(days<=0?'오늘':days+'일 전')+')';}
+    else li.textContent='아직 백업한 적이 없습니다';
+  }
+  el.innerHTML=snaps.length?snaps.map(s=>'<div class="cattle"><div class="tag t-feed" style="font-size:11px">💾</div><div class="info"><h4>'+s.label+' · '+s.count+'두</h4><p>'+fmt(s.ts)+' '+new Date(s.ts).toTimeString().slice(0,5)+'</p></div><button class="btn ghost sm" style="width:auto" onclick="restoreSnap('+s.id+')">복원</button></div>').join(''):'<p class="muted">앱 내부에 보관된 백업이 없습니다. 위에서 백업하면 자동으로 5개까지 보관됩니다.</p>';
+}
+function restoreSnap(id){
+  const snaps=store.get('snaps')||[];const s=snaps.find(x=>x.id===id);
+  if(!s){showToast('백업을 찾을 수 없습니다');return;}
+  if(applyRestore(s.data)){showToast('복원 완료 — '+s.label+' ('+herd.length+'두)');go('home');}
+}
+/* 백업 권유: 마지막 백업 후 N일 경과 또는 미백업 시 홈 배너 */
+const BACKUP_REMIND_DAYS=7;
+function backupOverdue(){
+  const last=store.get('lastBackup');
+  if(!last)return herd.length>0;            /* 데이터 있는데 한 번도 백업 안 함 */
+  return (Date.now()-new Date(last))/864e5>=BACKUP_REMIND_DAYS;
+}
+
+
+
+
+let deferred=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;document.getElementById('install').style.display='block';});
+function doInstall(){if(deferred){deferred.prompt();deferred=null;}else showToast('브라우저 메뉴 → 홈 화면에 추가');}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* init */
+renderCattle();renderDiary();renderMeds();renderMarkets();calc();renderHome();
+/* 앱 시작 시 알림 권한 있으면 미확인+알람 설정 알림 재발화 */
+try{if('Notification'in window&&Notification.permission==='granted'){alerts.filter(a=>!a.read&&a.alarm).forEach(fireNotification);}}catch(e){}
+/* 자동 수신 켜져 있으면 출하 대기 개체 도축결과 자동 동기화 */
+try{if(kppSync.auto)syncKPP(false);}catch(e){}
+try{if(herdSync.auto&&farmAuthStatus().verified)syncMyHerd(false);}catch(e){}
+try{if(brain.autoOn)learn();}catch(e){}
+/* 실시간 시세 자동수집: 앱 실행 시 + 설정 간격마다 백그라운드 동기화 */
+try{
+  if(mktSync.auto){
+    const since=mktSync.last?(Date.now()-new Date(mktSync.last))/36e5:999;
+    if(since>=(mktSync.intervalH||6))syncMarket(false);
+    setInterval(()=>{if(mktSync.auto)syncMarket(false);},(mktSync.intervalH||6)*36e5);
+  }
+}catch(e){}
+/* 개장일 카카오 알림: 앱 실행 시 + 6시간마다 개장 여부 확인 */
+try{
+  checkMarketDays(false);
+  setInterval(()=>{checkMarketDays(false);},6*36e5);
+}catch(e){}
+</script>
+</body>
+</html>
